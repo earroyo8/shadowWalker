@@ -54,6 +54,7 @@
 #endif //USE_OPENAL_SOUND
 
 #include "nflessati.h"
+#include "earroyo.h"
 
 //macros
 #define rnd() (double)rand()/(double)RAND_MAX
@@ -545,6 +546,7 @@ void init()
 	g.nbuttons++;
 }
 
+/* MOVED to earroyo.cpp
 void resetGame()
 {
 	initSnake();
@@ -552,6 +554,7 @@ void resetGame()
 	g.gameover  = 0;
 	g.winner    = 0;
 }
+*/
 
 int checkKeys(XEvent *e)
 {
