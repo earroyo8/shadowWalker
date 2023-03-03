@@ -53,6 +53,8 @@
 #include </usr/include/AL/alut.h>
 #endif //USE_OPENAL_SOUND
 
+#include "nflessati.h"
+
 //macros
 #define rnd() (double)rand()/(double)RAND_MAX
 
@@ -166,7 +168,7 @@ struct Global {
 	Button button[MAXBUTTONS];
 	int nbuttons;
 	//
-	ALuint alBufferDrip, alBufferTick;
+    ALuint alBufferDrip, alBufferTick;
 	ALuint alSourceDrip, alSourceTick;
 	Global() {
 		xres = 800;
@@ -267,16 +269,17 @@ void initOpengl(void);
 int checkMouse(XEvent *e);
 int checkKeys(XEvent *e);
 void init();
-void initSounds(void);
+//void initSounds(void);
 void physics(void);
 void render(void);
 void getGridCenter(const int i, const int j, int cent[2]);
+/*
 #ifdef USE_OPENAL_SOUND
 void initSound();
 void cleanupSound();
-void playSound(ALuint source);
+//void playSound(ALuint source);
 #endif //USE_OPENAL_SOUND
-
+*/
 
 //-----------------------------------------------------------------------------
 //Setup timers
@@ -349,7 +352,7 @@ int main(int argc, char *argv[])
 	logClose();
 	return 0;
 }
-
+/*
 void initSound()
 {
 	#ifdef USE_OPENAL_SOUND
@@ -421,13 +424,15 @@ void cleanupSound()
 	#endif //USE_OPENAL_SOUND
 }
 
+
+
 void playSound(ALuint source)
 {
 	#ifdef USE_OPENAL_SOUND
 	alSourcePlay(source);
 	#endif //USE_OPENAL_SOUND
 }
-
+*/
 void initOpengl(void)
 {
 	//OpenGL initialization
