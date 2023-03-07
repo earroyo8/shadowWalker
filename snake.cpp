@@ -55,6 +55,7 @@
 
 #include "nflessati.h"
 #include "earroyo.h"
+#include "drivera.h"
 
 //macros
 #define rnd() (double)rand()/(double)RAND_MAX
@@ -481,12 +482,16 @@ void initSnake()
 	//snake.timer = glfwGetTime() + 0.5;
 }
 
+
+//Now in drivera.cpp
+/*
 void initRat()
 {
 	g.rat.status = 1;
 	g.rat.pos[0] = 25;
 	g.rat.pos[1] = 2;
 }
+*/
 
 void init()
 {
@@ -781,6 +786,7 @@ void physics(void)
 		return;
 	}
 }
+
 
 void render(void)
 {
