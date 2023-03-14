@@ -53,7 +53,6 @@
 #include </usr/include/AL/alut.h>
 #endif //USE_OPENAL_SOUND
 
-#include "nflessati.h"
 #include "earroyo.h"
 #include "drivera.h"
 
@@ -275,13 +274,13 @@ void init();
 void physics(void);
 void render(void);
 void getGridCenter(const int i, const int j, int cent[2]);
-/*
+
 #ifdef USE_OPENAL_SOUND
 void initSound();
 void cleanupSound();
 //void playSound(ALuint source);
 #endif //USE_OPENAL_SOUND
-*/
+
 
 //-----------------------------------------------------------------------------
 //Setup timers
@@ -354,7 +353,7 @@ int main(int argc, char *argv[])
 	logClose();
 	return 0;
 }
-/*
+
 void initSound()
 {
 	#ifdef USE_OPENAL_SOUND
@@ -434,7 +433,7 @@ void playSound(ALuint source)
 	alSourcePlay(source);
 	#endif //USE_OPENAL_SOUND
 }
-*/
+
 void initOpengl(void)
 {
 	//OpenGL initialization
@@ -473,12 +472,12 @@ void initSnake()
 	int i;
 	g.snake.status = 1;
 	g.snake.delay = .15;
-	g.snake.length = rand() % 4 + 3;
+	g.snake.length = 1;
 	for (i=0; i<g.snake.length; i++) {
 		g.snake.pos[i][0] = 2;
 		g.snake.pos[i][1] = 2;
 	}
-	g.snake.direction = DIRECTION_RIGHT;
+	g.snake.direction = 5;
 	//snake.timer = glfwGetTime() + 0.5;
 }
 
@@ -551,8 +550,9 @@ void init()
 	g.nbuttons++;
 }
 
-/* MOVED to earroyo.cpp
-void resetGame()
+//MOVED to earroyo.cpp
+extern void resetGame();
+/*
 {
 	initSnake();
 	initRat();
@@ -682,6 +682,7 @@ void getGridCenter(const int i, const int j, int cent[2])
 }
 
 
+
 void physics(void)
 {
 	int i;
@@ -716,12 +717,15 @@ void physics(void)
 	//1=left
 	//2=up
 	//3=right
+	
+
 	switch (g.snake.direction) {
 		case DIRECTION_DOWN:  g.snake.pos[0][1] += 1; break;
 		case DIRECTION_LEFT:  g.snake.pos[0][0] -= 1; break;
 		case DIRECTION_UP:    g.snake.pos[0][1] -= 1; break;
 		case DIRECTION_RIGHT: g.snake.pos[0][0] += 1; break;
 	}
+
 	//check for snake off board...
 	if (g.snake.pos[0][0] < 0 ||
 		g.snake.pos[0][0] > g.gridDim-1 ||
@@ -754,7 +758,7 @@ void physics(void)
 	}
 	//did the snake eat the rat???
 	if (headpos[0] == g.rat.pos[0] && headpos[1] == g.rat.pos[1]) {
-		//yes, increase length of snake.
+/*		//yes, increase length of snake.
 		playSound(g.alSourceTick);
 		//put new segment at end of snake.
 		Log("snake ate rat. snake.length: %i   dir: %i\n",
@@ -765,7 +769,10 @@ void physics(void)
 			g.snake.pos[g.snake.length][1] = g.snake.pos[g.snake.length-1][1];
 			g.snake.length++;
 		}
-		//new position for rat...
+*/
+	    g.gameover=1;
+	    return;
+	    //new position for rat...
 		int collision=0;
 		int ntries=0;
 		while (1) {
@@ -878,7 +885,7 @@ void render(void)
 	glColor3f(0.1f, 0.1f, 0.1f);
 	glBegin(GL_LINES);
 	for (i=1; i<g.gridDim; i++) {
-		y0 += 10;
+		y0 += 40;
 		glVertex2i(x0,y0);
 		glVertex2i(x1,y0);
 	}
@@ -886,7 +893,7 @@ void render(void)
 	y0 = s1-b2;
 	y1 = s1+b2;
 	for (j=1; j<g.gridDim; j++) {
-		x0 += 10;
+		x0 += 40;
 		glVertex2i(x0,y0);
 		glVertex2i(x0,y1);
 	}
