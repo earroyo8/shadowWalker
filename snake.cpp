@@ -63,6 +63,7 @@
 #define DIRECTION_LEFT  1
 #define DIRECTION_UP    2
 #define DIRECTION_RIGHT 3
+#define NO_MOVEMENT 4
 //
 #define MAX_GRID 80
 typedef struct t_grid {
@@ -477,7 +478,7 @@ void initSnake()
 		g.snake.pos[i][0] = 2;
 		g.snake.pos[i][1] = 2;
 	}
-	g.snake.direction = 5;
+	g.snake.direction = NO_MOVEMENT;
 	//snake.timer = glfwGetTime() + 0.5;
 }
 
@@ -568,8 +569,12 @@ int checkKeys(XEvent *e)
 		return 0;
 	int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
 	if (e->type == KeyRelease) {
+	    	
 		if (key == XK_Shift_L || key == XK_Shift_R)
 			shift=0;
+		if(key == XK_Left ||key == XK_Right||key == XK_Up||key == XK_Down)
+			g.snake.direction = NO_MOVEMENT;
+
 		return 0;
 	}
 	if (key == XK_Shift_L || key == XK_Shift_R) {
@@ -724,8 +729,18 @@ void physics(void)
 		case DIRECTION_LEFT:  g.snake.pos[0][0] -= 1; break;
 		case DIRECTION_UP:    g.snake.pos[0][1] -= 1; break;
 		case DIRECTION_RIGHT: g.snake.pos[0][0] += 1; break;
+		case NO_MOVEMENT:  g.snake.pos[0][0]+=0; g.snake.pos[0][1]+=0 ; break;
+/*	if (g.snake.direction == DIRECTION_DOWN||g.snake.direction == DIRECTION_UP) {
+		printf(" Hello\n");
+		fflush(stdout);	
+	    g.snake.direction = NO_MOVEMENT;
 	}
-
+	else if (g.snake.direction == DIRECTION_RIGHT||g.snake.direction == DIRECTION_LEFT) {
+		printf(" Hi\n");
+		fflush(stdout);	
+		g.snake.direction = NO_MOVEMENT;	
+	}
+*/	}
 	//check for snake off board...
 	if (g.snake.pos[0][0] < 0 ||
 		g.snake.pos[0][0] > g.gridDim-1 ||
@@ -885,7 +900,7 @@ void render(void)
 	glColor3f(0.1f, 0.1f, 0.1f);
 	glBegin(GL_LINES);
 	for (i=1; i<g.gridDim; i++) {
-		y0 += 40;
+		y0 += 10;
 		glVertex2i(x0,y0);
 		glVertex2i(x1,y0);
 	}
@@ -893,7 +908,7 @@ void render(void)
 	y0 = s1-b2;
 	y1 = s1+b2;
 	for (j=1; j<g.gridDim; j++) {
-		x0 += 40;
+		x0 += 10;
 		glVertex2i(x0,y0);
 		glVertex2i(x0,y1);
 	}
