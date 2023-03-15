@@ -55,7 +55,7 @@
 
 #include "earroyo.h"
 #include "drivera.h"
-
+#include "nflessati.h"
 //macros
 #define rnd() (double)rand()/(double)RAND_MAX
 
@@ -63,7 +63,6 @@
 #define DIRECTION_LEFT  1
 #define DIRECTION_UP    2
 #define DIRECTION_RIGHT 3
-#define NO_MOVEMENT 4
 //
 #define MAX_GRID 80
 typedef struct t_grid {
@@ -270,6 +269,7 @@ public:
 void initOpengl(void);
 int checkMouse(XEvent *e);
 int checkKeys(XEvent *e);
+//int guard_hit(int headpos[2], int xpos,int ypos);
 void init();
 //void initSounds(void);
 void physics(void);
@@ -551,9 +551,10 @@ void init()
 	g.nbuttons++;
 }
 
+
 //MOVED to earroyo.cpp
-extern void resetGame();
 /*
+void resetGame();
 {
 	initSnake();
 	initRat();
@@ -771,22 +772,11 @@ void physics(void)
 		newpos[0] = oldpos[0];
 		newpos[1] = oldpos[1];
 	}
-	//did the snake eat the rat???
-	if (headpos[0] == g.rat.pos[0] && headpos[1] == g.rat.pos[1]) {
-/*		//yes, increase length of snake.
-		playSound(g.alSourceTick);
-		//put new segment at end of snake.
-		Log("snake ate rat. snake.length: %i   dir: %i\n",
-		                                g.snake.length,g.snake.direction);
-		int addlength = rand() % 4 + 4;
-		for (i=0; i<addlength; i++) {
-			g.snake.pos[g.snake.length][0] = g.snake.pos[g.snake.length-1][0];
-			g.snake.pos[g.snake.length][1] = g.snake.pos[g.snake.length-1][1];
-			g.snake.length++;
-		}
-*/
-	    g.gameover=1;
-	    return;
+
+
+	g.gameover = guard_hit(headpos,g.rat.pos[0],g.rat.pos[1]);
+
+	return;
 	    //new position for rat...
 		int collision=0;
 		int ntries=0;
@@ -806,7 +796,7 @@ void physics(void)
 		}
 		Log("new rat: %i %i\n",g.rat.pos[0],g.rat.pos[1]);
 		return;
-	}
+	
 }
 
 
