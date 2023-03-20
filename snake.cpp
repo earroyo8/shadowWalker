@@ -153,13 +153,14 @@ public:
 	}
 };
 Image img[1] = {"./images/marble.gif" };
-
-
+int lb = 20, ub = 100;
+int MAX_WALLS = (rand() % (ub - lb + 1)) + lb;
 struct Global {
 	int xres, yres;
 	Grid grid[MAX_GRID][MAX_GRID];
 	Snake snake;
 	Rat rat;
+	Walls walls[100];
 	int gridDim;
 	int boardDim;
 	int gameover;
@@ -482,7 +483,27 @@ void initSnake()
 	//snake.timer = glfwGetTime() + 0.5;
 }
 
-
+void initWalls()
+{
+    	int i;
+	int wlb = 1,wub = 39;
+	int widthl = 4, widthu = 25; 
+	for (i=0;i<MAX_WALLS;i++) {
+		g.walls[i].pos[0] = (rand() % (wub - wlb + 1)) + wlb;
+		g.walls[i].pos[1] = (rand() % (wub - wlb + 1)) + wlb;
+		g.walls[i].w = (rand() % (widthu - widthl + 1)) + widthl;
+		g.walls[i].h = 4;
+	}
+		for (i = 0; i<MAX_WALLS;i++) {
+			for (int j = 0;j<MAX_WALLS;j++) {
+				if(g.walls[i].pos[0] == g.walls[j].pos[0] &&
+				g.walls[i].pos[1] == g.walls[j].pos[1]) {
+					g.walls[i].pos[0] = (rand() % (wub - wlb + 1)) + wlb;
+					g.walls[i].pos[1] = (rand() % (wub - wlb + 1)) + wlb;
+				}
+			}
+		}
+}
 //Now in drivera.cpp
 /*
 void initRat()
@@ -499,6 +520,7 @@ void init()
 	//
 	initSnake();
 	initRat();
+	initWalls();
 	//
 	//initialize buttons...
 	g.nbuttons=0;
@@ -747,7 +769,7 @@ void physics(void)
 		g.snake.pos[0][0] > g.gridDim-1 ||
 		g.snake.pos[0][1] < 0 ||
 		g.snake.pos[0][1] > g.gridDim-1) {
-		g.gameover=1;
+		g.snake.pos[0][0]+=0; g.snake.pos[0][1]+=0 ;
 		return;
 	}
 	//check for snake crossing itself...
@@ -775,7 +797,7 @@ void physics(void)
 
 
 	g.gameover = guard_hit(headpos,g.rat.pos[0],g.rat.pos[1]);
-
+	
 	return;
 	    //new position for rat...
 		int collision=0;
@@ -836,7 +858,6 @@ void render(void)
 		glTexCoord2f(1.0f, 0.0f); glVertex2i(g.xres, 0);
 	glEnd();
 	glBindTexture(GL_TEXTURE_2D, 0);
-	//
 	//draw all buttons
 	for (i=0; i<g.nbuttons; i++) {
 		if (g.button[i].over) {
@@ -940,6 +961,12 @@ void render(void)
 	glEnd();
 	#endif //COLORFUL_SNAKE
 	//
+	//draw walls
+	for (int i=0;i<MAX_WALLS;i++)
+	{
+            getGridCenter(g.walls[i].pos[0],g.walls[i].pos[1],cent);
+	    make_walls(g.walls[i].w,g.walls[i].h,cent[0],cent[1]);
+	}
 	//
 	//draw rat...
 	getGridCenter(g.rat.pos[1],g.rat.pos[0],cent);
