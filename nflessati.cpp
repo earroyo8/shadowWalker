@@ -5,7 +5,7 @@ int guard_hit(int headpos[2], int xpos,int ypos)
 {
     int gameover = 0;
     if (headpos[0] == xpos && headpos[1] == ypos) {
-	    gameover=1;
+	gameover=1;
     }
 
     return gameover;

@@ -4,9 +4,9 @@
 #define NO_MOVEMENT 4
 
 typedef struct t_wall{
-    	    int number;
-	    float w,h;
-	    float pos[2];
+    int number;
+    float w,h;
+    float pos[2];
 }Walls;
 
 extern void make_walls(float w, float h, int xcent, int ycent);
