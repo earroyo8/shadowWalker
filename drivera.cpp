@@ -4,18 +4,33 @@
 #include <unistd.h>
 #include "drivera.h"
 
-typedef struct t_rat {
+//Log of other changes made not found here:
+//Changed Spy and Guard colors
+//Changed Board color
+//Changed background image
+//Changed Spy hitting Guard to a reset instead of gameover (add lives)
+
+typedef struct t_guard {
 	int status;
 	int pos[2];
-} GRat;
+} GGuard;
 
 struct Global {
 
-    GRat rat;
-} gr;
-void initRat()
+    GGuard guard;
+} gg;
+void initGuard()
 {
-	gr.rat.status = 1;
-	gr.rat.pos[0] = 25;
-	gr.rat.pos[1] = 2;
+	gg.guard.status = 1;
+	gg.guard.pos[0] = 25;
+	gg.guard.pos[1] = 2;
 }
+/*
+void MMenu
+{
+
+
+}
+
+*/
+

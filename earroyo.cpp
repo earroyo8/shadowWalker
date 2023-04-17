@@ -11,8 +11,8 @@
 struct Global {
 /*    int xres, yres;
     Grid grid[MAX_GRID][MAX_GRID];
-    Snake snake;
-    Rat rat;
+    Spy spy;
+    Guard guard;
     int gridDim;
     int boardDim;               */
     int gameover;
@@ -37,8 +37,8 @@ struct Global {
 
 void resetGame()
 {
-    initSnake();
-    initRat();
+    initSpy();
+    initGuard();
     ge.gameover  = 0;
     ge.winner    = 0;
 }
