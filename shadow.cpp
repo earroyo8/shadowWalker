@@ -63,6 +63,15 @@
 #define DIRECTION_LEFT  1
 #define DIRECTION_UP    2
 #define DIRECTION_RIGHT 3
+
+//cone of vision param (added by cviram)
+#define CONE_ANGLE 45.0f //in degrees
+#define CONE_DISTANCE 25.0f //in units
+#define SPY_CONE_ANGLE 90.0f
+#define SPY_CONE_DISTANCE 25.0f
+#define SPY_ANGLE_SNEAK 60.0f
+#define SPY_DISTANCE_SNEAK 5.0f
+
 //
 #define MAX_GRID 80
 typedef struct t_grid {
@@ -467,6 +476,20 @@ void initOpengl(void)
     glTexImage2D(GL_TEXTURE_2D, 0, 3,
             g.marbleImage->width, g.marbleImage->height,
             0, GL_RGB, GL_UNSIGNED_BYTE, g.marbleImage->data);
+}
+
+//added cone of vision by cviram
+void initguardCone(float angle, float distance) {
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(0.0f, 0.0f); //center of cone
+    glColor3f(1.0f, 0.0f, 1.0f); //cone to purple
+    for (float i = -angle / 2; i <= angle / 2; i += 1.0f) {
+        float rad = i * (M_PI / 180.0f);
+        float x = distance * cos(rad);
+        float y = distance * sin(rad);
+        glVertex2f(x, y);
+    }
+    glEnd();
 }
 
 void initSpy()
@@ -1041,6 +1064,8 @@ void render(void)
     //
     //draw guard...
     getGridCenter(g.guard.pos[1],g.guard.pos[0],cent);
+    initguardCone(CONE_ANGLE, CONE_DISTANCE);
+    getTranslatef(g.guard.pos[1],g.guard.pos[0],0.0f);
     glColor3f(1.0, 0.1f, 0.0f);
     glBegin(GL_QUADS);
     glVertex2i(cent[0]-4, cent[1]-3);
