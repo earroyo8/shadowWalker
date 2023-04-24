@@ -47,15 +47,16 @@
 #include "log.h"
 //#include "ppm.h"
 #include "fonts.h"
-
 #define USE_OPENAL_SOUND
 #ifdef USE_OPENAL_SOUND
 #include </usr/include/AL/alut.h>
 #endif //USE_OPENAL_SOUND
-
+#include <iostream>
 #include "earroyo.h"
 #include "drivera.h"
 #include "nflessati.h"
+
+using namespace std;
 //macros
 #define rnd() (double)rand()/(double)RAND_MAX
 
@@ -73,6 +74,7 @@
 #define SPY_DISTANCE_SNEAK 5.0f
 
 //
+
 #define MAX_GRID 80
 typedef struct t_grid {
     int status;
@@ -88,7 +90,7 @@ typedef struct t_spy {
     double delay;
 } Spy;
 //
-typedef struct t_rat {
+typedef struct t_guard {
     int status;
     int pos[2];
 } Guard;
@@ -162,14 +164,13 @@ class Image {
         }
 };
 Image img[1] = {"./images/maze.jpg" };
-int lb = 20, ub = 100;
-int MAX_WALLS = (rand() % (ub - lb + 1)) + lb;
+
 struct Global {
     int xres, yres;
     Grid grid[MAX_GRID][MAX_GRID];
     Spy spy;
     Guard guard;
-    Walls walls[100];
+
     int gridDim;
     int boardDim;
     int gameover;
@@ -284,8 +285,7 @@ void init();
 //void initSounds(void);
 void physics(void);
 void render(void);
-void getGridCenter(const int i, const int j, int cent[2]);
-
+extern void getGridCenter(const int i, const int j, int cent[2]);
 #ifdef USE_OPENAL_SOUND
 void initSound();
 void cleanupSound();
@@ -309,7 +309,6 @@ void timeCopy(struct timespec *dest, struct timespec *source) {
     memcpy(dest, source, sizeof(struct timespec));
 }
 //-----------------------------------------------------------------------------
-int wall_matrix[32][32];
 
 int main(int argc, char *argv[])
 {
@@ -494,118 +493,46 @@ void initguardCone(float angle, float distance) {
 
 void initSpy()
 {
-    int i;
+
+    int rowrand=rand() % MAX_SIZE;
+    int colrand=rand() % MAX_SIZE;
     g.spy.status = 1;
     g.spy.delay = .15;
     g.spy.length = 1;
-    for (i=0; i<g.spy.length; i++) {
-        g.spy.pos[i][0] = 2;
-        g.spy.pos[i][1] = 2;
+
+    while (walls[rowrand][colrand]==1) {
+        rowrand=rand() % MAX_SIZE;
+        colrand=rand() % MAX_SIZE;
     }
+
+    g.spy.pos[0][0]=colrand;
+    g.spy.pos[0][1]=rowrand;
+
+    /*    
+          for (i=0; i<g.spy.length; i++) {
+          g.spy.pos[i][0] = 3;
+          g.spy.pos[i][1] = 3;
+          }
+          */
     g.spy.direction = NO_MOVEMENT;
     //spy.timer = glfwGetTime() + 0.5;
 }
 
-/*
-void initWalls()
-{
-    for (int j = 0;j<32;j++) {
-        for (int k = 0;k<32;k++) {
-            wall_matrix[j][k]=0;
-        }
-    }
-    int i;
-    int h = 0;
-    int w = 0;
-    int temp1 = 0;
-    int temp2 = 0;
-    int wlb = 1,wub = 39;
-    int widthl = 4, widthu = 20;
-    int heightl = 4, heightu =20; 
-    for (i=0;i<MAX_WALLS;i++) {
-        g.walls[i].pos[0] = (rand() % (wub - wlb + 1)) + wlb;
-        g.walls[i].pos[1] = (rand() % (wub - wlb + 1)) + wlb;
-        temp1=g.walls[i].pos[0];
-        temp2=g.walls[i].pos[1];
-
-        g.walls[i].w = (rand() % (widthu - widthl + 1)) + widthl;
-        if (g.walls[i].w <=6) {
-            g.walls[i].w = 4;
-            g.walls[i].h = (rand() % (heightu - heightl + 1)) + heightl;
-        }
-        else {
-            g.walls[i].h = 4;
-        }
-        w = g.walls[i].w;
-        h = g.walls[i].h;
-        if (wall_matrix[temp1][temp2] ==1 ||wall_matrix[temp1][temp2] ==2) {    
-            g.walls[i].pos[0] = (rand() % (wub - wlb + 1)) + wlb;
-            g.walls[i].pos[1] = (rand() % (wub - wlb + 1)) + wlb;
-            temp1=g.walls[i].pos[0];
-            temp2=g.walls[i].pos[1];
-        }
-        wall_matrix[temp1][temp2] =1;
-
-        printf("wall:%d,width: %d\n",i,w);
-        if(h == 4) {    
-            for (int j = 0;j<w;j++) {
-                printf("1 ");
-                wall_matrix[temp1+j][temp2]=1;
-                printf("2 ");
-                wall_matrix[temp1+j][temp2+1]=2;
-                printf("3 ");
-                wall_matrix[temp1+j][temp2-1]=2;
-                printf("4 ");
-                wall_matrix[temp1-j][temp2]=1;
-                printf("5 ");
-                wall_matrix[temp1-j][temp2+1]=2;
-                printf("6\n");
-                wall_matrix[temp1-j][temp2-1]=2;
-            }
-        }
-
-        else {
-            for (int j = 1;j<h;j++) {
-                wall_matrix[temp1][temp2+j]=1;
-                wall_matrix[temp1+1][temp2+j]=2;
-                wall_matrix[temp1-1][temp2+j]=2;
-                wall_matrix[temp1][temp2-j]=1;
-                wall_matrix[temp1+1][temp2-j]=2;
-                wall_matrix[temp1-1][temp2-j]=2;
-            }
-        }
-
-    }
-    for (int j = 0;j<32;j++) {
-        for (int k = 0;k<32;k++) {
-            printf("%d ",wall_matrix[j][k]);
-        }
-        printf("\n");
-    }
-    
-        for (i = 0; i<MAX_WALLS;i++) {
-        for (int j = 0;j<MAX_WALLS;j++) {
-        if(g.walls[i].pos[0] == g.walls[j].pos[0] &&
-        g.walls[i].pos[1] == g.walls[j].pos[1]) {
-        g.walls[i].pos[0] = (rand() % (wub - wlb + 1)) + wlb;
-        g.walls[i].pos[1] = (rand() % (wub - wlb + 1)) + wlb;
-        }
-        if (g.walls[i].pos[0]-g.walls[j].pos[0]<=8&&g.walls[i].pos[1]-g.walls[j].pos[1]<=8) {
-        g.walls[j].pos[0]=g.walls[j].pos[0]+4;
-        }
-        }
-        }
-}
-*/
 //Now in drivera.cpp
 /*
    void initGuard()
    {
-   g.guard.status = 1;
-   g.guard.pos[0] = 25;
-   g.guard.pos[1] = 2;
+   int i=rand() % MAX_SIZE;
+   int j=rand() % MAX_SIZE;
+   while (walls[i][j]!=0) {
+   i=rand() % MAX_SIZE;
+   j=rand() % MAX_SIZE;
    }
-   */
+   g.guard.status = 1;
+   g.guard.pos[0] = j;
+   g.guard.pos[1] = i;
+   }
+   */ 
 
 void init()
 {
@@ -613,7 +540,7 @@ void init()
     //
     initSpy();
     initGuard();
-    //initWalls();
+    initWalls();
     //
     //initialize buttons...
     g.nbuttons=0;
@@ -681,6 +608,7 @@ void init()
 int checkKeys(XEvent *e)
 {
     static int shift=0;
+    int result = 0;
     if (e->type != KeyRelease && e->type != KeyPress)
         return 0;
     int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
@@ -701,6 +629,10 @@ int checkKeys(XEvent *e)
     switch (key) {
         case XK_r:
             resetGame();
+            break;
+        case XK_Escape:
+            printf("\n");
+            result = 1;;
             break;
         case XK_equal:
             g.spy.delay *= 0.9;
@@ -723,7 +655,7 @@ int checkKeys(XEvent *e)
             g.spy.direction = DIRECTION_DOWN;
             break;
     }
-    return 0;
+    return result;
 }
 
 int checkMouse(XEvent *e)
@@ -731,6 +663,7 @@ int checkMouse(XEvent *e)
     static int savex = 0;
     static int savey = 0;
     int i,x,y;
+    int result = 0;
     int lbutton=0;
     int rbutton=0;
     //
@@ -770,13 +703,14 @@ int checkMouse(XEvent *e)
                             break;
                         case 1:
                             printf("Quit was clicked!\n");
-                            return 1;
+                            result=1;
+                            break;
                     }
                 }
             }
         }
     }
-    return 0;
+    return result;
 }
 
 void getGridCenter(const int i, const int j, int cent[2])
@@ -841,77 +775,92 @@ void physics(void)
 
 
     switch (g.spy.direction) {
-        case DIRECTION_DOWN:  g.spy.pos[0][1] += 1; break;
-        case DIRECTION_LEFT:  g.spy.pos[0][0] -= 1; break;
-        case DIRECTION_UP:    g.spy.pos[0][1] -= 1; break;
-        case DIRECTION_RIGHT: g.spy.pos[0][0] += 1; break;
-        case NO_MOVEMENT:  g.spy.pos[0][0]+=0; g.spy.pos[0][1]+=0 ; break;
-                           /*	if (g.snake.direction == DIRECTION_DOWN||g.snake.direction == DIRECTION_UP) {
-                                printf(" Hello\n");
-                                fflush(stdout);	
-                                g.snake.direction = NO_MOVEMENT;
-                                }
-                                else if (g.snake.direction == DIRECTION_RIGHT||g.snake.direction == DIRECTION_LEFT) {
-                                printf(" Hi\n");
-                                fflush(stdout);	
-                                g.snake.direction = NO_MOVEMENT;	
-                                }
-                                */	}
-                           //check for snake off board...
-                           if (g.spy.pos[0][0] < 0 ||
-                                   g.spy.pos[0][0] > g.gridDim-1 ||
-                                   g.spy.pos[0][1] < 0 ||
-                                   g.spy.pos[0][1] > g.gridDim-1) {
-                               g.spy.pos[0][0]+=0; g.spy.pos[0][1]+=0 ;
-                               return;
-                           }
-                           //check for snake crossing itself...
-                           for (i=1; i<g.spy.length; i++) {
-                               if (g.spy.pos[i][0] == g.spy.pos[0][0] &&
-                                       g.spy.pos[i][1] == g.spy.pos[0][1]) {
-                                   g.gameover=1;
-                                   return;
-                               }
-                           }
-                           //
-                           newpos[0] = headpos[0];
-                           newpos[1] = headpos[1];
-                           for (i=1; i<g.spy.length; i++) {
-                               oldpos[0] = g.spy.pos[i][0];
-                               oldpos[1] = g.spy.pos[i][1];
-                               if (g.spy.pos[i][0] == newpos[0] &&
-                                       g.spy.pos[i][1] == newpos[1])
-                                   break;
-                               g.spy.pos[i][0] = newpos[0];
-                               g.spy.pos[i][1] = newpos[1];
-                               newpos[0] = oldpos[0];
-                               newpos[1] = oldpos[1];
-                           }
+        case DIRECTION_DOWN:  
+            g.spy.pos[0][1] += 1; 
+            break;
+        case DIRECTION_LEFT:  
+            g.spy.pos[0][0] -= 1; 
+            break;
+        case DIRECTION_UP:    
+            g.spy.pos[0][1] -= 1; 
+            break;
+        case DIRECTION_RIGHT: 
+            g.spy.pos[0][0] += 1; 
+            break;
+        case NO_MOVEMENT:  
+            g.spy.pos[0][0]+=0; 
+            g.spy.pos[0][1]+=0 ; 
+            break;
+            /*	if (g.snake.direction == DIRECTION_DOWN||g.snake.direction == DIRECTION_UP) {
+                printf(" Hello\n");
+                fflush(stdout);	
+                g.snake.direction = NO_MOVEMENT;
+                }
+                else if (g.snake.direction == DIRECTION_RIGHT||g.snake.direction == DIRECTION_LEFT) {
+                printf(" Hi\n");
+                fflush(stdout);	
+                g.snake.direction = NO_MOVEMENT;	
+                }
+                */	}
+            //check for snake off board...
+            if (g.spy.pos[0][0] < 0 ||
+                    g.spy.pos[0][0] > g.gridDim-1 ||
+                    g.spy.pos[0][1] < 0 ||
+                    g.spy.pos[0][1] > g.gridDim-1) {
+                g.spy.pos[0][0]=headpos[0]; g.spy.pos[0][1]=headpos[1] ;
+                return;
+            }
+            //check for snake crossing itself...
+            for (i=1; i<g.spy.length; i++) {
+                if (g.spy.pos[i][0] == g.spy.pos[0][0] &&
+                        g.spy.pos[i][1] == g.spy.pos[0][1]) {
+                    g.gameover=1;
+                    return;
+                }
+            }
+            //
+            newpos[0] = headpos[0];
+            newpos[1] = headpos[1];
+            for (i=1; i<g.spy.length; i++) {
+                oldpos[0] = g.spy.pos[i][0];
+                oldpos[1] = g.spy.pos[i][1];
+                if (g.spy.pos[i][0] == newpos[0] &&
+                        g.spy.pos[i][1] == newpos[1])
+                    break;
+                g.spy.pos[i][0] = newpos[0];
+                g.spy.pos[i][1] = newpos[1];
+                newpos[0] = oldpos[0];
+                newpos[1] = oldpos[1];
+            }
 
+            if (wallHit(g.spy.pos[0][0],g.spy.pos[0][1])) {
+                g.spy.pos[0][0]=headpos[0];
+                g.spy.pos[0][1]=headpos[1];
+            }
 
-                           if(guard_hit(headpos,g.guard.pos[0],g.guard.pos[1]))
-                               resetGame();
-                         
-                           return;
-                           //new position for guard...
-                           int collision=0;
-                           int ntries=0;
-                           while (1) {
-                               g.guard.pos[0] = rand() % g.gridDim;
-                               g.guard.pos[1] = rand() % g.gridDim;
-                               collision=0;
-                               for (i=0; i<g.spy.length; i++) {
-                                   if (g.guard.pos[0] == g.spy.pos[i][0] &&
-                                           g.guard.pos[1] == g.spy.pos[i][1]) {
-                                       collision=1;
-                                       break;
-                                   }
-                               }
-                               if (!collision) break;
-                               if (++ntries > 1000000) break;
-                           }
-                           Log("new guard: %i %i\n",g.guard.pos[0],g.guard.pos[1]);
-                           return;
+            if (guardHit(headpos,g.guard.pos[0],g.guard.pos[1]))
+                resetGame();
+
+            return;
+            //new position for guard...
+            int collision=0;
+            int ntries=0;
+            while (1) {
+                g.guard.pos[0] = rand() % g.gridDim;
+                g.guard.pos[1] = rand() % g.gridDim;
+                collision=0;
+                for (i=0; i<g.spy.length; i++) {
+                    if (g.guard.pos[0] == g.spy.pos[i][0] &&
+                            g.guard.pos[1] == g.spy.pos[i][1]) {
+                        collision=1;
+                        break;
+                    }
+                }
+                if (!collision) break;
+                if (++ntries > 1000000) break;
+            }
+            Log("new guard: %i %i\n",g.guard.pos[0],g.guard.pos[1]);
+            return;
 
 }
 
@@ -989,7 +938,7 @@ void render(void)
         }
     }
     //draw the main game board in middle of screen
-    glColor3f(0.5f, 0.5f, 0.5f);
+    glColor3f(1.0f, 1.0f, 1.0f);
     glBegin(GL_QUADS);
     glVertex2i(s0-b2, s1-b2);
     glVertex2i(s0-b2, s1+b2);
@@ -1019,10 +968,11 @@ void render(void)
     }
     glEnd();
     //
-#define COLORFUL_SNAKE
+    drawWalls();
+//#define COLORFUL_SNAKE
     //
     //draw spy...
-#ifdef COLORFUL_SNAKE
+//#ifdef COLORFUL_SNAKE
     float c[3]={0.0f,1.0,0.1};
     float rgb[3];
     rgb[0] = -0.9 / (float)g.spy.length;
@@ -1032,46 +982,41 @@ void render(void)
     glBegin(GL_QUADS);
     for (i=0; i<g.spy.length; i++) {
         getGridCenter(g.spy.pos[i][1],g.spy.pos[i][0],cent);
-        glVertex2i(cent[0]-4, cent[1]-3);
-        glVertex2i(cent[0]-4, cent[1]+4);
-        glVertex2i(cent[0]+3, cent[1]+4);
-        glVertex2i(cent[0]+3, cent[1]-3);
+        glVertex2i(cent[0]-5, cent[1]-5);
+        glVertex2i(cent[0]-5, cent[1]+5);
+        glVertex2i(cent[0]+5, cent[1]+5);
+        glVertex2i(cent[0]+5, cent[1]-5);
         c[0] +=	rgb[0];
         c[2] +=	rgb[2];
         glColor3fv(c);
     }
     glEnd();
+    /*
 #else //COLORFUL_SNAKE
     glColor3f(0.1f, 0.8f, 0.1f);
     glBegin(GL_QUADS);
     for (i=0; i<g.spy.length; i++) {
         getGridCenter(g.spy.pos[i][1],g.spy.pos[i][0],cent);
-        glVertex2i(cent[0]-4, cent[1]-3);
+        glVertex2i(cent[0]-4, cent[1]-4);
         glVertex2i(cent[0]-4, cent[1]+4);
-        glVertex2i(cent[0]+3, cent[1]+4);
-        glVertex2i(cent[0]+3, cent[1]-3);
+        glVertex2i(cent[0]+4, cent[1]+4);
+        glVertex2i(cent[0]+4, cent[1]-4);
         glColor3f(0.0f, 0.6f, 0.0f);
     }
     glEnd();
-#endif //COLORFUL_SNAKE
+#endif*/
     //
-    //draw walls
-    for (int i=0;i<MAX_WALLS;i++)
-    {
-        getGridCenter(g.walls[i].pos[0],g.walls[i].pos[1],cent);
-        make_walls(g.walls[i].w,g.walls[i].h,cent[0],cent[1]);
-    }
     //
     //draw guard...
     getGridCenter(g.guard.pos[1],g.guard.pos[0],cent);
     initguardCone(CONE_ANGLE, CONE_DISTANCE);
-    getTranslatef(g.guard.pos[1],g.guard.pos[0],0.0f);
+    glTranslatef(g.guard.pos[1],g.guard.pos[0],0.0f);
     glColor3f(1.0, 0.1f, 0.0f);
     glBegin(GL_QUADS);
-    glVertex2i(cent[0]-4, cent[1]-3);
-    glVertex2i(cent[0]-4, cent[1]+4);
-    glVertex2i(cent[0]+3, cent[1]+4);
-    glVertex2i(cent[0]+3, cent[1]-3);
+    glVertex2i(cent[0]-5, cent[1]-5);
+    glVertex2i(cent[0]-5, cent[1]+5);
+    glVertex2i(cent[0]+5, cent[1]+5);
+    glVertex2i(cent[0]+5, cent[1]-5);
     glEnd();
     //
     //
