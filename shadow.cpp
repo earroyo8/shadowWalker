@@ -480,13 +480,14 @@ void initOpengl(void)
 //added cone of vision by cviram
 void initguardCone(float angle, float distance) {
     glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(0.0f, 0.0f); //center of cone
+    glVertex2f(g.guard.pos[1], g.guard.pos[0]); //center of cone
     glColor3f(1.0f, 0.0f, 1.0f); //cone to purple
     for (float i = -angle / 2; i <= angle / 2; i += 1.0f) {
         float rad = i * (M_PI / 180.0f);
         float x = distance * cos(rad);
         float y = distance * sin(rad);
         glVertex2f(x, y);
+        glVertex2f(g.guard.pos[0], g.guard.pos[1]);
     }
     glEnd();
 }
@@ -518,21 +519,20 @@ void initSpy()
     //spy.timer = glfwGetTime() + 0.5;
 }
 
-//Now in drivera.cpp
-/*
-   void initGuard()
-   {
+void initGuard()
+{
    int i=rand() % MAX_SIZE;
    int j=rand() % MAX_SIZE;
+    
    while (walls[i][j]!=0) {
-   i=rand() % MAX_SIZE;
-   j=rand() % MAX_SIZE;
+    i=rand() % MAX_SIZE;
+    j=rand() % MAX_SIZE;
    }
+    
    g.guard.status = 1;
    g.guard.pos[0] = j;
    g.guard.pos[1] = i;
-   }
-   */ 
+} 
 
 void init()
 {
@@ -1010,7 +1010,7 @@ void render(void)
     //draw guard...
     getGridCenter(g.guard.pos[1],g.guard.pos[0],cent);
     initguardCone(CONE_ANGLE, CONE_DISTANCE);
-    glTranslatef(g.guard.pos[1],g.guard.pos[0],0.0f);
+    //glTranslatef(g.guard.pos[1],g.guard.pos[0],0.0f);
     glColor3f(1.0, 0.1f, 0.0f);
     glBegin(GL_QUADS);
     glVertex2i(cent[0]-5, cent[1]-5);
