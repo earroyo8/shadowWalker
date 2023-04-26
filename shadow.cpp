@@ -55,6 +55,7 @@
 #include "earroyo.h"
 #include "drivera.h"
 #include "nflessati.h"
+#include "cviramontes.h"
 
 using namespace std;
 //macros
@@ -72,6 +73,7 @@ using namespace std;
 #define SPY_CONE_DISTANCE 25.0f
 #define SPY_ANGLE_SNEAK 60.0f
 #define SPY_DISTANCE_SNEAK 5.0f
+#define MAX_GUARDS 10
 
 //
 
@@ -475,21 +477,6 @@ void initOpengl(void)
     glTexImage2D(GL_TEXTURE_2D, 0, 3,
             g.marbleImage->width, g.marbleImage->height,
             0, GL_RGB, GL_UNSIGNED_BYTE, g.marbleImage->data);
-}
-
-//added cone of vision by cviram
-void initguardCone(float angle, float distance) {
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(g.guard.pos[1], g.guard.pos[0]); //center of cone
-    glColor3f(1.0f, 0.0f, 1.0f); //cone to purple
-    for (float i = -angle / 2; i <= angle / 2; i += 1.0f) {
-        float rad = i * (M_PI / 180.0f);
-        float x = distance * cos(rad);
-        float y = distance * sin(rad);
-        glVertex2f(x, y);
-        glVertex2f(g.guard.pos[0], g.guard.pos[1]);
-    }
-    glEnd();
 }
 
 void initSpy()
