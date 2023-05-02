@@ -1,3 +1,3 @@
 //Daniel Rivera
 
-extern void initGuard();
+//extern void initGuard();

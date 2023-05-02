@@ -61,11 +61,6 @@ using namespace std;
 //macros
 #define rnd() (double)rand()/(double)RAND_MAX
 
-#define DIRECTION_DOWN  0
-#define DIRECTION_LEFT  1
-#define DIRECTION_UP    2
-#define DIRECTION_RIGHT 3
-
 //cone of vision param (added by cviram)
 #define CONE_ANGLE 45.0f //in degrees
 #define CONE_DISTANCE 25.0f //in units
@@ -172,8 +167,9 @@ struct Global {
     int xres, yres;
     Grid grid[MAX_GRID][MAX_GRID];
     Spy spy;
-    Guard guard;
-
+    Guard guard[MAX_GUARDS];
+    int nathansFeature1;
+    int nathansFeature2;
     int gridDim;
     int boardDim;
     int gameover;
@@ -189,6 +185,8 @@ struct Global {
         xres = 800;
         yres = 600;
         gridDim = 40;
+        nathansFeature1=0;
+        nathansFeature2=0;
         gameover = 0;
         winner = 0;
         nbuttons = 0;
@@ -304,6 +302,7 @@ struct timespec timeStart, timeCurrent;
 struct timespec timePause;
 double physicsCountdown = 0.0;
 double timeSpan = 0.0;
+int result = 0;
 double timeDiff(struct timespec *start, struct timespec *end) {
     return (double)(end->tv_sec - start->tv_sec ) +
         (double)(end->tv_nsec - start->tv_nsec) * oobillion;
@@ -332,6 +331,9 @@ int main(int argc, char *argv[])
             x11.checkResize(&e);
             done = checkMouse(&e);
             done = checkKeys(&e);
+            if (result==1) {
+                done = result;
+            }
         }
         //
         //Below is a process to apply physics at a consistent rate.
@@ -523,7 +525,7 @@ void initGuard()
         g.guard[k].pos[0] = j;
         g.guard[k].pos[1] = i;
 
-        g.guard[k].direction = DIRECTION_RIGHT;
+        g.guard[k].direction = NO_MOVEMENT;
         //g.guard[k].pos[1] += 1;
     }
 }
@@ -602,7 +604,7 @@ void init()
 int checkKeys(XEvent *e)
 {
     static int shift=0;
-    int result = 0;
+    int kresult = 0;
     if (e->type != KeyRelease && e->type != KeyPress)
         return 0;
     int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
@@ -611,7 +613,8 @@ int checkKeys(XEvent *e)
         if (key == XK_Shift_L || key == XK_Shift_R)
             shift=0;
         if(key == XK_Left ||key == XK_Right||key == XK_Up||key == XK_Down)
-            g.spy.direction = NO_MOVEMENT;
+            if (g.nathansFeature2==0)
+                g.spy.direction = NO_MOVEMENT;
 
         return 0;
     }
@@ -626,8 +629,21 @@ int checkKeys(XEvent *e)
             break;
         case XK_Escape:
             printf("\n");
-            result = 1;;
+            kresult = 1;;
             break;
+        case XK_w:
+            if(g.nathansFeature1==0)
+                g.nathansFeature1=1;
+            else
+                g.nathansFeature1=0;
+            break;
+        case XK_m:
+            if(g.nathansFeature2==0)
+                g.nathansFeature2=1;
+            else
+                g.nathansFeature2=0;
+            break;
+
         case XK_equal:
             g.spy.delay *= 0.9;
             if (g.spy.delay < 0.001)
@@ -649,7 +665,7 @@ int checkKeys(XEvent *e)
             g.spy.direction = DIRECTION_DOWN;
             break;
     }
-    return result;
+    return kresult;
 }
 
 int checkMouse(XEvent *e)
@@ -657,12 +673,11 @@ int checkMouse(XEvent *e)
     static int savex = 0;
     static int savey = 0;
     int i,x,y;
-    int result = 0;
     int lbutton=0;
     int rbutton=0;
     //
     if (e->type == ButtonRelease)
-        return 0;
+        return result;
     if (e->type == ButtonPress) {
         if (e->xbutton.button==1) {
             //Left button is down
@@ -696,7 +711,6 @@ int checkMouse(XEvent *e)
                             resetGame();
                             break;
                         case 1:
-                            printf("Quit was clicked!\n");
                             result=1;
                             break;
                     }
@@ -729,7 +743,6 @@ void getGridCenter(const int i, const int j, int cent[2])
     cent[0] += (bq * j);
     cent[1] += (bq * i1);
 }
-
 
 
 void physics(void)
@@ -785,99 +798,144 @@ void physics(void)
             g.spy.pos[0][0]+=0; 
             g.spy.pos[0][1]+=0 ; 
             break;
-            /*	if (g.snake.direction == DIRECTION_DOWN||g.snake.direction == DIRECTION_UP) {
-                printf(" Hello\n");
-                fflush(stdout);	
-                g.snake.direction = NO_MOVEMENT;
-                }
-                else if (g.snake.direction == DIRECTION_RIGHT||g.snake.direction == DIRECTION_LEFT) {
-                printf(" Hi\n");
-                fflush(stdout);	
-                g.snake.direction = NO_MOVEMENT;	
-                }
-                */	}
-            //check for snake off board...
-            if (g.spy.pos[0][0] < 0 ||
-                    g.spy.pos[0][0] > g.gridDim-1 ||
-                    g.spy.pos[0][1] < 0 ||
-                    g.spy.pos[0][1] > g.gridDim-1) {
-                g.spy.pos[0][0]=headpos[0]; g.spy.pos[0][1]=headpos[1] ;
-                return;
+    }
+    //check for spy off board...
+    if (g.spy.pos[0][0] < 0 ||
+            g.spy.pos[0][0] > g.gridDim-1 ||
+            g.spy.pos[0][1] < 0 ||
+            g.spy.pos[0][1] > g.gridDim-1) {
+        g.spy.pos[0][0]=headpos[0]; g.spy.pos[0][1]=headpos[1] ;
+        return;
+    }
+    //check for spy crossing itself...
+    for (i=1; i<g.spy.length; i++) {
+        if (g.spy.pos[i][0] == g.spy.pos[0][0] &&
+                g.spy.pos[i][1] == g.spy.pos[0][1]) {
+            g.gameover=1;
+            return;
+        }
+    }
+    //
+    newpos[0] = headpos[0];
+    newpos[1] = headpos[1];
+    for (i=1; i<g.spy.length; i++) {
+        oldpos[0] = g.spy.pos[i][0];
+        oldpos[1] = g.spy.pos[i][1];
+        if (g.spy.pos[i][0] == newpos[0] &&
+                g.spy.pos[i][1] == newpos[1])
+            break;
+        g.spy.pos[i][0] = newpos[0];
+        g.spy.pos[i][1] = newpos[1];
+        newpos[0] = oldpos[0];
+        newpos[1] = oldpos[1];
+    }
+
+    if (wallHit(g.spy.pos[0][0],g.spy.pos[0][1])) {
+        g.spy.pos[0][0]=headpos[0];
+        g.spy.pos[0][1]=headpos[1];
+    }
+    for (int z=0; z<MAX_GUARDS; z++) {
+        int guardpos[2];
+        guardpos[0]=g.guard[z].pos[0];
+        guardpos[1]=g.guard[z].pos[1];
+
+
+        if (guardHit(headpos,g.guard[z].pos[0],g.guard[z].pos[1])) {
+            resetGame();
+            return;
+        }
+        if(g.guard[z].direction == NO_MOVEMENT)
+            g.guard[z].direction = DIRECTION_RIGHT;
+
+        if(g.guard[z].direction==DIRECTION_RIGHT) {
+            if (walls[g.guard[z].pos[1]+1][g.guard[z].pos[0]]!=1) {
+                g.guard[z].direction = DIRECTION_DOWN;
             }
-            //check for snake crossing itself...
-            for (i=1; i<g.spy.length; i++) {
-                if (g.spy.pos[i][0] == g.spy.pos[0][0] &&
-                        g.spy.pos[i][1] == g.spy.pos[0][1]) {
-                    g.gameover=1;
-                    return;
-                }
+            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]+1]!=1) {
+                g.guard[z].direction = DIRECTION_RIGHT;
             }
-            //
-            newpos[0] = headpos[0];
-            newpos[1] = headpos[1];
-            for (i=1; i<g.spy.length; i++) {
-                oldpos[0] = g.spy.pos[i][0];
-                oldpos[1] = g.spy.pos[i][1];
-                if (g.spy.pos[i][0] == newpos[0] &&
-                        g.spy.pos[i][1] == newpos[1])
-                    break;
-                g.spy.pos[i][0] = newpos[0];
-                g.spy.pos[i][1] = newpos[1];
-                newpos[0] = oldpos[0];
-                newpos[1] = oldpos[1];
+            else if (walls[g.guard[z].pos[1]-1][g.guard[z].pos[0]]!=1) {
+                g.guard[z].direction = DIRECTION_UP;
+            }
+            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]-1]!=1) {
+                g.guard[z].direction = DIRECTION_LEFT;
+            }
+        }
+        else if (g.guard[z].direction==DIRECTION_DOWN) {
+            if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]+1]!=1) {
+                g.guard[z].direction = DIRECTION_RIGHT;
+            }
+            else if (walls[g.guard[z].pos[1]+1][g.guard[z].pos[0]]!=1) {
+                g.guard[z].direction = DIRECTION_DOWN;
+            }
+            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]-1]!=1) {
+                g.guard[z].direction = DIRECTION_LEFT;
+            }
+            else if (walls[g.guard[z].pos[1]-1][g.guard[z].pos[0]]!=1) {
+                g.guard[z].direction = DIRECTION_UP;
             }
 
-            if (wallHit(g.spy.pos[0][0],g.spy.pos[0][1])) {
-                g.spy.pos[0][0]=headpos[0];
-                g.spy.pos[0][1]=headpos[1];
+        }
+        else if (g.guard[z].direction==DIRECTION_LEFT) {
+            if (walls[g.guard[z].pos[1]-1][g.guard[z].pos[0]]!=1) {
+                g.guard[z].direction = DIRECTION_UP;
             }
-            for (int z=0; z<MAX_GUARDS; ++z) {
-                if (guardHit(headpos,g.guard[z].pos[0],g.guard[z].pos[1]))
-                    resetGame();
-
-                return;
-                //new position for guard...
-                int collision=0;
-                int ntries=0;
-
-                switch (g.guard[z].direction) {
-                    case DIRECTION_DOWN:
-                        g.guard[z].pos[1] += 1;
-                        break;
-                    case DIRECTION_LEFT:
-                        g.guard[z].pos[0] -= 1;
-                        break;
-                    case DIRECTION_UP:
-                        g.guard[z].pos[1] -= 1;
-                        break;
-                    case DIRECTION_RIGHT:
-                        g.guard[z].pos[0] += 1;
-                        break;
-                    case NO_MOVEMENT:
-                        g.guard[z].pos[0]+=0;
-                        g.guard[z].pos[1]+=0 ;
-                        break;
-                }
-
-                while (1) {
-                    g.guard[z].pos[0] = rand() % g.gridDim;
-                    g.guard[z].pos[1] = rand() % g.gridDim;
-                    collision=0;
-                    for (i=0; i<g.spy.length; i++) {
-                        if (g.guard[z].pos[0] == g.spy.pos[i][0] &&
-                                g.guard[z].pos[1] == g.spy.pos[i][1]) {
-                            collision=1;
-                            break;
-                        }
-                    }
-                    if (!collision) break;
-                    if (++ntries > 1000000) break;
-                }
-                Log("new guard: %i %i\n",g.guard[z].pos[0],g.guard[z].pos[1]);
-                return;
+            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]-1]!=1) {
+                g.guard[z].direction = DIRECTION_LEFT;
             }
+            else if (walls[g.guard[z].pos[1]+1][g.guard[z].pos[0]]!=1) {
+                g.guard[z].direction = DIRECTION_DOWN;
+            }
+            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]+1]!=1) {
+                g.guard[z].direction = DIRECTION_RIGHT;
+            }
+        }
+        else if (g.guard[z].direction==DIRECTION_UP) {
+            if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]-1]!=1) {
+                g.guard[z].direction = DIRECTION_LEFT;
+            }
+            else if (walls[g.guard[z].pos[1]-1][g.guard[z].pos[0]]!=1) {
+                g.guard[z].direction = DIRECTION_UP;
+            }
+            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]+1]!=1) {
+                g.guard[z].direction = DIRECTION_RIGHT;
+            }
+            else if (walls[g.guard[z].pos[1]+1][g.guard[z].pos[0]]!=1) {
+                g.guard[z].direction = DIRECTION_DOWN;
+            }
+        } 
+
+
+        switch (g.guard[z].direction) {
+            case DIRECTION_DOWN:
+                g.guard[z].pos[1] += 1;
+                break;
+            case DIRECTION_LEFT:
+                g.guard[z].pos[0] -= 1;
+                break;
+            case DIRECTION_UP:
+                g.guard[z].pos[1] -= 1;
+                break;
+            case DIRECTION_RIGHT:
+                g.guard[z].pos[0] += 1;
+                break;
+            case NO_MOVEMENT:
+                g.guard[z].pos[0]+=0;
+                g.guard[z].pos[1]+=0 ;
+                break;
+        }
+        if (g.guard[z].pos[0]< 0 ||
+                g.guard[z].pos[0] > g.gridDim-1 ||
+                g.guard[z].pos[1]< 0 ||
+                g.guard[z].pos[1] > g.gridDim-1) {
+            g.guard[z].pos[0]=guardpos[0]; g.guard[z].pos[1]=guardpos[1] ;
+            return;
+        }
+
+        Log("new guard: %i %i\n",g.guard[z].pos[0],g.guard[z].pos[1]);
+    }
+
 }
-
 
 void render(void)
 {
@@ -982,11 +1040,13 @@ void render(void)
     }
     glEnd();
     //
-    drawWalls();
-//#define COLORFUL_SNAKE
+    if (g.nathansFeature1!=1) {
+        drawWalls();
+    }
+    //#define COLORFUL_SNAKE
     //
     //draw spy...
-//#ifdef COLORFUL_SNAKE
+    //#ifdef COLORFUL_SNAKE
     float c[3]={0.0f,1.0,0.1};
     float rgb[3];
     rgb[0] = -0.9 / (float)g.spy.length;
@@ -1005,22 +1065,6 @@ void render(void)
         glColor3fv(c);
     }
     glEnd();
-    /*
-#else //COLORFUL_SNAKE
-    glColor3f(0.1f, 0.8f, 0.1f);
-    glBegin(GL_QUADS);
-    for (i=0; i<g.spy.length; i++) {
-        getGridCenter(g.spy.pos[i][1],g.spy.pos[i][0],cent);
-        glVertex2i(cent[0]-4, cent[1]-4);
-        glVertex2i(cent[0]-4, cent[1]+4);
-        glVertex2i(cent[0]+4, cent[1]+4);
-        glVertex2i(cent[0]+4, cent[1]-4);
-        glColor3f(0.0f, 0.6f, 0.0f);
-    }
-    glEnd();
-#endif*/
-    //
-    //
     //draw guard...
     for (int k=0; k<MAX_GUARDS; ++k) {
         getGridCenter(g.guard[k].pos[1],g.guard[k].pos[0],cent);
