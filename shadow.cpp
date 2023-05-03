@@ -93,8 +93,10 @@ typedef struct t_guard {
     int direction;
 } Guard;
 //
-//
-//
+typedef struct key {
+    int status;
+    int pos[2];
+} Key;
 //
 #define MAXBUTTONS 4
 typedef struct t_button {
@@ -168,6 +170,7 @@ struct Global {
     Grid grid[MAX_GRID][MAX_GRID];
     Spy spy;
     Guard guard[MAX_GUARDS];
+    Key key;
     int nathansFeature1;
     int nathansFeature2;
     int gridDim;
@@ -529,6 +532,21 @@ void initGuard()
         //g.guard[k].pos[1] += 1;
     }
 }
+//$
+void initKey()
+{
+    int xPos = rand() % MAX_SIZE;
+    int yPos = rand() % MAX_SIZE;
+    while (walls[xPos][yPos]!=0) {
+        xPos = rand() % MAX_SIZE;
+        yPos = rand() % MAX_SIZE;
+    }
+    g.key.status = 1;
+    g.key.pos[0] = xPos;
+    g.key.pos[1] = yPos;
+}
+//$
+
 
 void init()
 {
@@ -537,6 +555,7 @@ void init()
     initSpy();
     initGuard();
     initWalls();
+    initKey();
     //
     //initialize buttons...
     g.nbuttons=0;
@@ -829,6 +848,37 @@ void physics(void)
         newpos[0] = oldpos[0];
         newpos[1] = oldpos[1];
     }
+    //check to see if Spy collides with key. 
+    if (headpos[0] == g.key.pos[0] && headpos[1] == g.key.pos[1]) {
+        //Spawn new Key
+        int collision=0;
+        int ntries=0;
+        while (1) {
+            int xPos = rand() % MAX_SIZE;
+            int yPos = rand() % MAX_SIZE;
+            while (walls[xPos][yPos]!=0) {
+                xPos = rand() % MAX_SIZE;
+                yPos = rand() % MAX_SIZE;
+            }
+            g.key.status = 1;
+            g.key.pos[0] = xPos;
+            g.key.pos[1] = yPos;
+            //g.key.pos[0] = rand() % g.gridDim;
+            //g.key.pos[1] = rand() % g.gridDim;
+            collision=0;
+                for (i=0; i<g.spy.length; i++) {
+                    if (g.key.pos[0] == g.spy.pos[i][0] &&
+                            g.key.pos[1] == g.spy.pos[i][1]) {
+                        collision=1;
+                        break;
+                    }
+                }
+                if (!collision) break;
+                if (++ntries > 1000000) break;
+        }
+        return;
+    }
+    //End of Spy&key Collision detection
 
     if (wallHit(g.spy.pos[0][0],g.spy.pos[0][1])) {
         g.spy.pos[0][0]=headpos[0];
@@ -1079,13 +1129,18 @@ void render(void)
         glEnd();
     }
     //
-    //
+    //Draw Key on board
+    getGridCenter(g.key.pos[1],g.key.pos[0],cent);
+    glColor3f(1,1,0);
+    glBegin(GL_QUADS);
+    glVertex2i(cent[0]-5, cent[1]-5);
+    glVertex2i(cent[0]-5, cent[1]+5);
+    glVertex2i(cent[0]+5, cent[1]+5);
+    glVertex2i(cent[0]+5, cent[1]-5);
+    glEnd();
+    // 
     r.left   = g.xres/2;
     r.bot    = g.yres-100;
     r.center = 1;
     ggprint16(&r, 20, 0x00ffffff, "Shadow Walker");
 }
-
-
-
-

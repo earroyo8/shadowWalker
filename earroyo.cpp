@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <iostream>
 #include "earroyo.h"
+
 /*
 typedef struct key {
     int status;
@@ -20,35 +21,58 @@ struct Global {
     int winner;
 } ge;
 
+/*
+void initKey() {
+    int xPos = rand() % MAX_SIZE;
+    int yPos = rand() % MAX_SIZE;
+    while (walls[xPos][yPos]!=0) {
+        xPos = rand() % MAX_SIZE;
+        yPos = rand() % MAX_SIZE;
+    }
+    ge.key.status = 1;
+    ge.key.pos[0] = xPos;
+    ge.key.pos[1] = yPos;
+}
+*/
+
 void resetGame() {
     initSpy();
     initGuard();
-//    initKey();
+    initKey();
     ge.gameover  = 0;
     ge.winner    = 0;
 }
 
 /*
-//Draw Key on board
-void drawKey() {
-    int cent[2];
-    getGridCenter(ge.key.pos[10],ge.key.pos[10]+1,cent);
-    glColor3f(0.8, 0.498039f, 0.196078f);
+//RENDER%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Draw Key on board
+    //void drawKey() {
+    getGridCenter(g.key.pos[1],g.key.pos[0],cent);
+    glColor3f(1,1,0);
     glBegin(GL_QUADS);
-    glVertex2i(cent[0]-4, cent[1]-4);
-    glVertex2i(cent[0]-4, cent[1]+4);
-    glVertex2i(cent[0]+4, cent[1]+4);
-    glVertex2i(cent[0]+4, cent[1]-4);
+    glVertex2i(cent[0]-5, cent[1]-5);
+    glVertex2i(cent[0]-5, cent[1]+5);
+    glVertex2i(cent[0]+5, cent[1]+5);
+    glVertex2i(cent[0]+5, cent[1]-5);
     glEnd();
-}
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
 
 /*
-void initKey() {
-    ge.key.status = 1;
-    ge.key.pos[0] = 30 ;
-    ge.key.pos[1] = 2;
-}
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ void initKey()
+ {
+    int xPos = rand() % MAX_SIZE;
+    int yPos = rand() % MAX_SIZE;
+    while (walls[xPos][yPos]!=0) {
+        xPos = rand() % MAX_SIZE;
+        yPos = rand() % MAX_SIZE;
+    }
+    g.key.status = 1;
+    g.key.pos[0] = xPos;
+    g.key.pos[1] = yPos;
+ }
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
 
 
