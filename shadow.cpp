@@ -172,6 +172,7 @@ struct Global {
     Guard guard[MAX_GUARDS];
     int go = 0;
     int life = 2; 
+    int trueReset = 0;
     Key key;
     int nathansFeature1;
     int nathansFeature2;
@@ -611,7 +612,6 @@ void init()
     g.nbuttons++;
 }
 
-
 //MOVED to earroyo.cpp
 /*
    void resetGame();
@@ -621,7 +621,7 @@ void init()
    g.gameover  = 0;
    g.winner    = 0;
    }
-   */
+*/
 
 int checkKeys(XEvent *e)
 {
@@ -659,13 +659,15 @@ int checkKeys(XEvent *e)
             g.go = 0;
             break;
         case XK_r:
-            resetGame();
+            resetGame(g.trueReset);
             g.gameover = 0;
             g.life = 2;
             break;
         case XK_q:
-            printf("\n");
-            kresult = 1;;
+            score--;
+            break; 
+        case XK_e:
+            incrementScore();
             break;
         case XK_Escape:
             printf("\n");
@@ -748,7 +750,7 @@ int checkMouse(XEvent *e)
                 if (lbutton) {
                     switch (i) {
                         case 0:
-                            resetGame();
+                            resetGame(g.trueReset);
                             g.gameover = 0;
                             g.life = 2;
                             break;
@@ -873,8 +875,8 @@ void physics(void)
     }
     //check to see if Spy collides with key. 
     if (headpos[0] == g.key.pos[0] && headpos[1] == g.key.pos[1]) {
-        g.gameover = 2;
         //Spawn new Key
+        incrementScore();
         int collision=0;
         int ntries=0;
         while (1) {
@@ -887,8 +889,6 @@ void physics(void)
             g.key.status = 1;
             g.key.pos[0] = xPos;
             g.key.pos[1] = yPos;
-            //g.key.pos[0] = rand() % g.gridDim;
-            //g.key.pos[1] = rand() % g.gridDim;
             collision=0;
                 for (i=0; i<g.spy.length; i++) {
                     if (g.key.pos[0] == g.spy.pos[i][0] &&
@@ -915,7 +915,7 @@ void physics(void)
 
 
         if (guardHit(headpos,g.guard[z].pos[0],g.guard[z].pos[1])) {
-            resetGame();
+            resetGame(g.trueReset);
             g.life = checklives(g.life);
                 if (g.life == 0) {
                     g.gameover = 1;                     
@@ -1171,10 +1171,20 @@ void render(void)
     r.bot    = g.yres-100;
     r.center = 1;
     ggprint16(&r, 20, 0x00ffffff, "Shadow Walker");
+
     //conditions to show various menus
+    if (score >= 3)
+            g.gameover = 2; 
     if (g.go == 0) {
         showMenu(r);
+        g.trueReset = 0;
     }
-    if (g.gameover == 1 || g.gameover == 2)
+    if (g.gameover == 1 || g.gameover == 2) {
         winOrLose(r, g.gameover);
+        g.trueReset = 1;
+    }
+        //
+    r.left   = g.xres - 100;
+    r.center = 0;
+    ggprint16(&r, 20, 0xFFFFFF, "Score: %d", score);
 }
