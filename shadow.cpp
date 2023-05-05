@@ -110,6 +110,10 @@ typedef struct t_button {
     unsigned int text_color;
 } Button;
 
+typedef struct t_teleport {
+    int pos[2];
+}Teleport;
+
 class Image {
     public:
         int width, height;
@@ -174,6 +178,7 @@ struct Global {
     int life = 2; 
     int trueReset = 0;
     Key key;
+    Teleport teleport[2];
     int nathansFeature1;
     int nathansFeature2;
     int gridDim;
@@ -309,6 +314,7 @@ struct timespec timePause;
 double physicsCountdown = 0.0;
 double timeSpan = 0.0;
 int result = 0;
+int telepress=0;
 double timeDiff(struct timespec *start, struct timespec *end) {
     return (double)(end->tv_sec - start->tv_sec ) +
         (double)(end->tv_nsec - start->tv_nsec) * oobillion;
@@ -362,7 +368,7 @@ int main(int argc, char *argv[])
         while(physicsCountdown >= physicsRate) {
             //6. Apply physics if the game is not paused
             if (g.go == 1)
-            physics();
+                physics();
             //7. Reduce the countdown by our physics-rate
             physicsCountdown -= physicsRate;
         }
@@ -549,6 +555,25 @@ void initKey()
     g.key.pos[0] = xPos;
     g.key.pos[1] = yPos;
 }
+
+void initTeleport()
+{
+    int i;
+    int row;
+    int col;
+    for (i=0;i<2;i++) {
+        row = rand() % MAX_SIZE;
+        col = rand() % MAX_SIZE;
+        while (walls[row][col]==1) {
+            row = rand() % MAX_SIZE;
+            col = rand() % MAX_SIZE;
+        }
+        g.teleport[i].pos[0]=col;
+        g.teleport[i].pos[1]=row;
+
+    }
+}
+
 //$
 
 
@@ -556,10 +581,11 @@ void init()
 {
     g.boardDim = g.gridDim * 10;
     //
+    initWalls();
     initSpy();
     initGuard();
-    initWalls();
     initKey();
+    initTeleport();
     //
     //initialize buttons...
     g.nbuttons=0;
@@ -621,7 +647,7 @@ void init()
    g.gameover  = 0;
    g.winner    = 0;
    }
-*/
+   */
 
 int checkKeys(XEvent *e)
 {
@@ -665,7 +691,11 @@ int checkKeys(XEvent *e)
             break;
         case XK_q:
             score--;
-            break; 
+            break;
+        case XK_t:
+            telepress=1;
+            break;
+
         case XK_e:
             incrementScore();
             break;
@@ -873,6 +903,22 @@ void physics(void)
         newpos[0] = oldpos[0];
         newpos[1] = oldpos[1];
     }
+
+    int telecheck=0;
+    telecheck=teleportHit(headpos,g.teleport[0].pos,g.teleport[1].pos);
+    if (telecheck==1&&telepress==1) {
+        g.spy.pos[0][0]=g.teleport[1].pos[0];
+        g.spy.pos[0][1]=g.teleport[1].pos[1];
+        telepress=0;
+        return;
+    }
+    else if (telecheck==2&&telepress==1) {
+        g.spy.pos[0][0]=g.teleport[0].pos[0];
+        g.spy.pos[0][1]=g.teleport[0].pos[1];
+        telepress=0;
+        return;
+    }
+
     //check to see if Spy collides with key. 
     if (headpos[0] == g.key.pos[0] && headpos[1] == g.key.pos[1]) {
         //Spawn new Key
@@ -890,15 +936,15 @@ void physics(void)
             g.key.pos[0] = xPos;
             g.key.pos[1] = yPos;
             collision=0;
-                for (i=0; i<g.spy.length; i++) {
-                    if (g.key.pos[0] == g.spy.pos[i][0] &&
-                            g.key.pos[1] == g.spy.pos[i][1]) {
-                        collision=1;
-                        break;
-                    }
+            for (i=0; i<g.spy.length; i++) {
+                if (g.key.pos[0] == g.spy.pos[i][0] &&
+                        g.key.pos[1] == g.spy.pos[i][1]) {
+                    collision=1;
+                    break;
                 }
-                if (!collision) break;
-                if (++ntries > 1000000) break;
+            }
+            if (!collision) break;
+            if (++ntries > 1000000) break;
         }
         return;
     }
@@ -917,9 +963,9 @@ void physics(void)
         if (guardHit(headpos,g.guard[z].pos[0],g.guard[z].pos[1])) {
             resetGame(g.trueReset);
             g.life = checklives(g.life);
-                if (g.life == 0) {
-                    g.gameover = 1;                     
-                }
+            if (g.life == 0) {
+                g.gameover = 1;                     
+            }
             return;
         }
         if(g.guard[z].direction == NO_MOVEMENT)
@@ -1117,14 +1163,17 @@ void render(void)
         glVertex2i(x0,y1);
     }
     glEnd();
-    //
+    //draw walls
     if (g.nathansFeature1!=1) {
         drawWalls();
     }
-    //#define COLORFUL_SNAKE
+    //draw teleporter
+    for (int i=0;i<2;i++) {
+        drawTeleport(g.teleport[i].pos[0],g.teleport[i].pos[1]);
+    }
+
     //
     //draw spy...
-    //#ifdef COLORFUL_SNAKE
     float c[3]={0.0f,1.0,0.1};
     float rgb[3];
     rgb[0] = -0.9 / (float)g.spy.length;
@@ -1174,7 +1223,7 @@ void render(void)
 
     //conditions to show various menus
     if (score >= 3)
-            g.gameover = 2; 
+        g.gameover = 2; 
     if (g.go == 0) {
         showMenu(r);
         g.trueReset = 0;
@@ -1183,7 +1232,7 @@ void render(void)
         winOrLose(r, g.gameover);
         g.trueReset = 1;
     }
-        //
+    //
     r.left   = g.xres - 100;
     r.center = 0;
     ggprint16(&r, 20, 0xFFFFFF, "Score: %d", score);

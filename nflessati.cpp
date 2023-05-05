@@ -28,6 +28,20 @@ bool wallHit(int spyposx,int spyposy)
     return result;
 }
 
+int teleportHit(int headpos[2],int tpos1[2], int tpos2[2])
+{
+    int result = 0;
+    if (headpos[0]==tpos1[0]&&headpos[1]==tpos1[1]) {
+        result=1;
+    }
+    else if (headpos[0]==tpos2[0]&&headpos[1]==tpos2[1]) {
+        result=2;
+
+    }
+    return result;
+}
+
+
 void randDir(int directions[4])
 {
     int i;
@@ -40,9 +54,9 @@ void randDir(int directions[4])
     }
     for (i=0;i<4;i++) {
         if (r!=i) {
-        directions[i]=temp1[r];
-        directions[r]=temp2[i];
-        r = rand()%4;
+            directions[i]=temp1[r];
+            directions[r]=temp2[i];
+            r = rand()%4;
         }
     }
 }
@@ -159,3 +173,21 @@ void drawWalls()
         }
     }
 }
+
+void drawTeleport(int tposx,int tposy)
+{
+    int i;
+    int cent[2];
+
+    for (i=0;i<2;i++) {
+        glColor3f(0.9f,0.6f,1.0f);
+        glBegin(GL_QUADS);
+        getGridCenter(tposy,tposx,cent);
+        glVertex2i(cent[0]+5, cent[1]+5);
+        glVertex2i(cent[0]+5, cent[1]-5);
+        glVertex2i(cent[0]-5, cent[1]-5);
+        glVertex2i(cent[0]-5, cent[1]+5);
+        glEnd();
+    }
+}
+
