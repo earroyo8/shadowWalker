@@ -2,6 +2,7 @@
 //earroyo.cpp file
 //
 #include <GL/glx.h>
+#include <GL/glu.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -14,9 +15,11 @@ typedef struct key {
     int pos[2];
 } Key;
 */
+int score = 0;
 
 struct Global {
 //    Key key;
+    int xres, yres;
     int gameover;
     int winner;
 } ge;
@@ -41,6 +44,11 @@ void resetGame() {
     initKey();
     ge.gameover  = 0;
     ge.winner    = 0;
+    score = 0;
+}
+
+void incrementScore() {
+    score++;
 }
 
 /*

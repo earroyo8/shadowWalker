@@ -608,7 +608,6 @@ void init()
     g.nbuttons++;
 }
 
-
 //MOVED to earroyo.cpp
 /*
    void resetGame();
@@ -618,7 +617,7 @@ void init()
    g.gameover  = 0;
    g.winner    = 0;
    }
-   */
+*/
 
 int checkKeys(XEvent *e)
 {
@@ -851,6 +850,7 @@ void physics(void)
     //check to see if Spy collides with key. 
     if (headpos[0] == g.key.pos[0] && headpos[1] == g.key.pos[1]) {
         //Spawn new Key
+        incrementScore();
         int collision=0;
         int ntries=0;
         while (1) {
@@ -863,8 +863,6 @@ void physics(void)
             g.key.status = 1;
             g.key.pos[0] = xPos;
             g.key.pos[1] = yPos;
-            //g.key.pos[0] = rand() % g.gridDim;
-            //g.key.pos[1] = rand() % g.gridDim;
             collision=0;
                 for (i=0; i<g.spy.length; i++) {
                     if (g.key.pos[0] == g.spy.pos[i][0] &&
@@ -1143,4 +1141,8 @@ void render(void)
     r.bot    = g.yres-100;
     r.center = 1;
     ggprint16(&r, 20, 0x00ffffff, "Shadow Walker");
+        //
+    r.left   = g.xres - 100;
+    r.center = 0;
+    ggprint16(&r, 20, 0xFFFFFF, "Score: %d", score);
 }
