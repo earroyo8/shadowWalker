@@ -170,6 +170,8 @@ struct Global {
     Grid grid[MAX_GRID][MAX_GRID];
     Spy spy;
     Guard guard[MAX_GUARDS];
+    int go = 0;
+    int life = 2; 
     Key key;
     int nathansFeature1;
     int nathansFeature2;
@@ -357,7 +359,8 @@ int main(int argc, char *argv[])
         //       if no,
         //           Apply no physics this frame.
         while(physicsCountdown >= physicsRate) {
-            //6. Apply physics
+            //6. Apply physics if the game is not paused
+            if (g.go == 1)
             physics();
             //7. Reduce the countdown by our physics-rate
             physicsCountdown -= physicsRate;
@@ -643,8 +646,26 @@ int checkKeys(XEvent *e)
     }
     (void)shift;
     switch (key) {
+        case XK_p:
+            //resetGame();
+            g.go = toggle(g.go);
+            break;
+        case XK_k:
+            g.gameover = 2;
+            g.go = 0;
+            break;
+        case XK_l:
+            g.gameover = 1;
+            g.go = 0;
+            break;
         case XK_r:
             resetGame();
+            g.gameover = 0;
+            g.life = 2;
+            break;
+        case XK_q:
+            printf("\n");
+            kresult = 1;;
             break;
         case XK_Escape:
             printf("\n");
@@ -728,6 +749,8 @@ int checkMouse(XEvent *e)
                     switch (i) {
                         case 0:
                             resetGame();
+                            g.gameover = 0;
+                            g.life = 2;
                             break;
                         case 1:
                             result=1;
@@ -850,6 +873,7 @@ void physics(void)
     }
     //check to see if Spy collides with key. 
     if (headpos[0] == g.key.pos[0] && headpos[1] == g.key.pos[1]) {
+        g.gameover = 2;
         //Spawn new Key
         int collision=0;
         int ntries=0;
@@ -892,6 +916,10 @@ void physics(void)
 
         if (guardHit(headpos,g.guard[z].pos[0],g.guard[z].pos[1])) {
             resetGame();
+            g.life = checklives(g.life);
+                if (g.life == 0) {
+                    g.gameover = 1;                     
+                }
             return;
         }
         if(g.guard[z].direction == NO_MOVEMENT)
@@ -1143,4 +1171,10 @@ void render(void)
     r.bot    = g.yres-100;
     r.center = 1;
     ggprint16(&r, 20, 0x00ffffff, "Shadow Walker");
+    //conditions to show various menus
+    if (g.go == 0) {
+        showMenu(r);
+    }
+    if (g.gameover == 1 || g.gameover == 2)
+        winOrLose(r, g.gameover);
 }
