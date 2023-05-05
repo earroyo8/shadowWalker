@@ -178,7 +178,7 @@ struct Global {
     int life = 2; 
     int trueReset = 0;
     Key key;
-    Teleport teleport[2];
+    Teleport teleport[4];
     int nathansFeature1;
     int nathansFeature2;
     int gridDim;
@@ -561,7 +561,7 @@ void initTeleport()
     int i;
     int row;
     int col;
-    for (i=0;i<2;i++) {
+    for (i=0;i<4;i++) {
         row = rand() % MAX_SIZE;
         col = rand() % MAX_SIZE;
         while (walls[row][col]==1) {
@@ -658,8 +658,10 @@ int checkKeys(XEvent *e)
     int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
     if (e->type == KeyRelease) {
 
-        if (key == XK_Shift_L || key == XK_Shift_R)
+        if (key == XK_Shift_L || key == XK_Shift_R) {
             shift=0;
+		g.spy.delay = 0.15; 
+	}
         if(key == XK_Left ||key == XK_Right||key == XK_Up||key == XK_Down)
             if (g.nathansFeature2==0)
                 g.spy.direction = NO_MOVEMENT;
@@ -668,6 +670,7 @@ int checkKeys(XEvent *e)
     }
     if (key == XK_Shift_L || key == XK_Shift_R) {
         shift=1;
+	g.spy.delay = 0.08;
         return 0;
     }
     (void)shift;
@@ -915,6 +918,19 @@ void physics(void)
     else if (telecheck==2&&telepress==1) {
         g.spy.pos[0][0]=g.teleport[0].pos[0];
         g.spy.pos[0][1]=g.teleport[0].pos[1];
+        telepress=0;
+        return;
+    }
+    telecheck=teleportHit(headpos,g.teleport[2].pos,g.teleport[3].pos);
+    if (telecheck==1&&telepress==1) {
+        g.spy.pos[0][0]=g.teleport[3].pos[0];
+        g.spy.pos[0][1]=g.teleport[3].pos[1];
+        telepress=0;
+        return;
+    }
+    else if (telecheck==2&&telepress==1) {
+        g.spy.pos[0][0]=g.teleport[2].pos[0];
+        g.spy.pos[0][1]=g.teleport[2].pos[1];
         telepress=0;
         return;
     }
@@ -1168,8 +1184,11 @@ void render(void)
         drawWalls();
     }
     //draw teleporter
-    for (int i=0;i<2;i++) {
-        drawTeleport(g.teleport[i].pos[0],g.teleport[i].pos[1]);
+    for (int i=0;i<4;i+=2) {
+        drawTeleport(g.teleport[i].pos[0],g.teleport[i].pos[1],0);
+    }
+    for (int i=1;i<4;i+=2) {
+        drawTeleport(g.teleport[i].pos[0],g.teleport[i].pos[1],1);
     }
 
     //
@@ -1236,4 +1255,18 @@ void render(void)
     r.left   = g.xres - 100;
     r.center = 0;
     ggprint16(&r, 20, 0xFFFFFF, "Score: %d", score);
+
+
+    if(g.nathansFeature2==1) {
+    	r.left=g.xres/2;
+	r.bot = g.yres-60;
+	r.center =1;
+	ggprint16(&r,22,0xFFFFFF, "Continuous Movement On");
+    }
+    if(g.nathansFeature1==1) {
+    	r.left=g.xres/2;
+	r.bot = g.yres-80;
+	r.center = 1;
+	ggprint16(&r,22,0xFFFFFF, "Invisible Walls On");
+    }
 }

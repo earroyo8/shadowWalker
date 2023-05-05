@@ -174,13 +174,18 @@ void drawWalls()
     }
 }
 
-void drawTeleport(int tposx,int tposy)
+void drawTeleport(int tposx,int tposy,int tset)
 {
     int i;
     int cent[2];
 
     for (i=0;i<2;i++) {
-        glColor3f(0.9f,0.6f,1.0f);
+	if (tset==0) {
+        glColor3f(0.0f,0.0f,1.0f);
+	}
+	else if( tset==1) {
+        glColor3f(1.0f,0.5f,0.0f);
+	}
         glBegin(GL_QUADS);
         getGridCenter(tposy,tposx,cent);
         glVertex2i(cent[0]+5, cent[1]+5);

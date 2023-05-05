@@ -13,7 +13,7 @@ extern int walls[MAX_SIZE][MAX_SIZE];
 extern int guardHit(int headpos[2], int xpos, int ypos);
 extern bool wallHit(int spyposx,int spyposy);
 extern int teleportHit(int headpos[2],int tpos1[2],int tpos2[2]);
-extern void drawTeleport(int tposx,int tposy);
+extern void drawTeleport(int tposx,int tposy,int tset);
 extern void initWalls();
 extern void drawWalls();
 #endif
