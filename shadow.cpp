@@ -64,12 +64,9 @@ using namespace std;
 //cone of vision param (added by cviram)
 #define CONE_ANGLE 45.0f //in degrees
 #define CONE_DISTANCE 25.0f //in units
-#define SPY_CONE_ANGLE 90.0f
-#define SPY_CONE_DISTANCE 25.0f
-#define SPY_ANGLE_SNEAK 60.0f
-#define SPY_DISTANCE_SNEAK 5.0f
-const int MAX_GUARDS = 10;
-
+const int MAX_GUARDS = 15;
+const int ENEMY_INCREMENT = 5;
+int enemyCount = 5;
 //
 
 #define MAX_GRID 80
@@ -525,7 +522,7 @@ void initSpy()
 #define grand() (rand() % 3 - 1)
 void initGuard()
 {
-    for (int k=0; k<MAX_GUARDS; ++k) {
+    for (int k=0; k<enemyCount; ++k) {
         int i=rand() % MAX_SIZE;
         int j=rand() % MAX_SIZE;
 
@@ -939,6 +936,7 @@ void physics(void)
     if (headpos[0] == g.key.pos[0] && headpos[1] == g.key.pos[1]) {
         //Spawn new Key
         incrementScore();
+	enemyCount += ENEMY_INCREMENT;
         int collision=0;
         int ntries=0;
         while (1) {
@@ -970,7 +968,7 @@ void physics(void)
         g.spy.pos[0][0]=headpos[0];
         g.spy.pos[0][1]=headpos[1];
     }
-    for (int z=0; z<MAX_GUARDS; z++) {
+    for (int z=0; z<enemyCount; z++) {
         int guardpos[2];
         guardpos[0]=g.guard[z].pos[0];
         guardpos[1]=g.guard[z].pos[1];
@@ -1212,7 +1210,7 @@ void render(void)
     }
     glEnd();
     //draw guard...
-    for (int k=0; k<MAX_GUARDS; ++k) {
+    for (int k=0; k<enemyCount; ++k) {
         getGridCenter(g.guard[k].pos[1],g.guard[k].pos[0],cent);
         initguardCone(CONE_ANGLE, CONE_DISTANCE);
         //glTranslatef(g.guard[k].pos[1],g.guard[k].pos[0],0.0f);
