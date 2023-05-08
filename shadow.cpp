@@ -690,6 +690,8 @@ int checkKeys(XEvent *e)
             else {
                 g.debug = 0;
                 g.danielsFeature = 0;
+                g.nathansFeature1 = 0;
+                g.nathansFeature2 = 0;
             }
             break;
         case XK_k:
@@ -737,16 +739,20 @@ int checkKeys(XEvent *e)
             kresult = 1;;
             break;
         case XK_w:
-            if(g.nathansFeature1==0)
-                g.nathansFeature1=1;
-            else
-                g.nathansFeature1=0;
+            if (g.debug == 1) {
+                if(g.nathansFeature1==0)
+                    g.nathansFeature1=1;
+                else
+                    g.nathansFeature1=0;
+            }
             break;
         case XK_m:
-            if(g.nathansFeature2==0)
-                g.nathansFeature2=1;
-            else
-                g.nathansFeature2=0;
+            if (g.debug == 1) {
+                if(g.nathansFeature2==0)
+                    g.nathansFeature2=1;
+                else
+                    g.nathansFeature2=0;
+            }
             break;
         case XK_c:
             if (g.debug == 1)
@@ -1292,7 +1298,7 @@ void render(void)
 
     }
     //
-    r.left   = g.xres - 100;
+    r.left   = g.xres - 120;
     r.center = 0;
     ggprint16(&r, 20, 0xFFFFFF, "Keys: %d", score);
     if (g.gameover != 2)
@@ -1301,6 +1307,12 @@ void render(void)
         debugText(r);
 
 
+    if(g.danielsFeature==1) {
+    	r.left=g.xres/2;
+	r.bot = g.yres-40;
+	r.center =1;
+	ggprint16(&r,22,0xFFFFFF, "Wall Collision Off");
+    }
     if(g.nathansFeature2==1) {
     	r.left=g.xres/2;
 	r.bot = g.yres-60;
