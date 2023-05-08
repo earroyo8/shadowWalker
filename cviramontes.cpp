@@ -5,13 +5,11 @@
 //cone of vision param
 #define CONE_ANGLE 45.0f //in degrees
 #define CONE_DISTANCE 25.0f //in units
-#define SPY_CONE_ANGLE 90.0f
-#define SPY_CONE_DISTANCE 25.0f
-#define SPY_ANGLE_SNEAK 60.0f
-#define SPY_DISTANCE_SNEAK 5.0f
 //const int for maximum guards
 const int MAX_GUARDS = 10;
+int enemyCount = 5;
 */
+const int ENEMY_INCREMENT = 5;
 
 /*
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,6 +47,11 @@ void initguardCone(float angle, float distance) {
     }
     glEnd();
 }
+
+void incrementGuard(int& enemyCount) {
+    enemyCount += ENEMY_INCREMENT;
+}
+    
 
 /*
 //PHYSICS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
