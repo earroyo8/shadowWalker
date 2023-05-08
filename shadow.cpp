@@ -95,6 +95,12 @@ typedef struct key {
     int pos[2];
 } Key;
 //
+typedef struct bomb {
+    int status;
+    int pos[2];
+    int timer = 0;
+} Bomb;
+//
 #define MAXBUTTONS 4
 typedef struct t_button {
     Rect r;
@@ -177,6 +183,7 @@ struct Global {
     int visableLife;
     int trueReset;
     Key key;
+    Bomb bomb;
     Teleport teleport[4];
     int nathansFeature1;
     int nathansFeature2;
@@ -560,6 +567,49 @@ void initKey()
     g.key.pos[0] = xPos;
     g.key.pos[1] = yPos;
 }
+//$
+void initBomb() {
+    int xPos = rand() % MAX_SIZE;
+    int yPos = rand() % MAX_SIZE;
+    while (walls[xPos][yPos]!=0) {
+        xPos = rand() % MAX_SIZE;
+        yPos = rand() % MAX_SIZE;
+    }
+    g.bomb.status = 1;
+    g.bomb.pos[0] = xPos;
+    g.bomb.pos[1] = yPos;
+    g.bomb.timer = 0; // initialize timer to 0
+}
+
+void explodeBomb() {
+     // timer static so it dosent reset everytime its called
+    static int explosionTimer = 0;
+    // Draw explosion
+    glColor3f(1,0,0); // set color to red
+    glBegin(GL_QUADS);
+    for(int i=g.bomb.pos[0]-1; i<=g.bomb.pos[0]+1; i++) {
+        for(int j=g.bomb.pos[1]-1; j<=g.bomb.pos[1]+1; j++) {
+            //check if valid location
+            if (i>=0 && j>=0 && i<MAX_SIZE && j<MAX_SIZE && walls[i][j]==0) {
+                int cent[2];
+                getGridCenter(j,i,cent);
+                glVertex2i(cent[0]-5, cent[1]-5);
+                glVertex2i(cent[0]-5, cent[1]+5);
+                glVertex2i(cent[0]+5, cent[1]+5);
+                glVertex2i(cent[0]+5, cent[1]-5);
+            }
+        }
+    }
+    glEnd();
+     // wait for 10 seconds (60 frames per second * 10 seconds = 600 frames)
+    if (explosionTimer >= 10) {
+        explosionTimer = 0;
+        initBomb(); // respawn a new bomb
+    } else {
+        explosionTimer++; // increment the timer on every frame
+    }
+}
+//$
 
 void initTeleport()
 {
@@ -579,9 +629,6 @@ void initTeleport()
     }
 }
 
-//$
-
-
 void init()
 {
     g.boardDim = g.gridDim * 10;
@@ -590,6 +637,7 @@ void init()
     initSpy();
     initGuard();
     initKey();
+    initBomb();
     initTeleport();
     //
     //initialize buttons...
@@ -653,7 +701,7 @@ void init()
    g.winner    = 0;
    }
    */
-
+bool feature_mode_active = false;
 int checkKeys(XEvent *e)
 {
     static int shift=0;
@@ -712,6 +760,15 @@ int checkKeys(XEvent *e)
                 g.nathansFeature1 = 0;
                 g.nathansFeature2 = 0;
             
+            }
+            break;
+            case XK_9: //press 9 for estevans feature modei
+            if (feature_mode_active == false) {
+                feature_mode_active = true;
+                featureMode();
+            }
+            else {
+                feature_mode_active = false;
             }
             break;
         case XK_q:
@@ -972,7 +1029,7 @@ void physics(void)
     if (headpos[0] == g.key.pos[0] && headpos[1] == g.key.pos[1]) {
         //Spawn new Key
         incrementScore();
-	incrementGuard(enemyCount);
+        incrementGuard(enemyCount);
         int collision=0;
         int ntries=0;
         while (1) {
@@ -996,10 +1053,40 @@ void physics(void)
             if (!collision) break;
             if (++ntries > 1000000) break;
         }
-	initGuard();
+	    initGuard();
         return;
     }
     //End of Spy&key Collision detection
+    //%%%%%%%%%%BombCollision%%%%%%%%%%%%%%%%%%%%%%
+    if (headpos[0] == g.bomb.pos[0] && headpos[1] == g.bomb.pos[1]) {
+        //Spawn new Bomb
+        int collision=0;
+        int ntries=0;
+        while (1) {
+            int xPos = rand() % MAX_SIZE;
+            int yPos = rand() % MAX_SIZE;
+            while (walls[xPos][yPos]!=0) {
+                xPos = rand() % MAX_SIZE;
+                yPos = rand() % MAX_SIZE;
+            }
+            g.bomb.status = 1;
+            g.bomb.pos[0] = xPos;
+            g.bomb.pos[1] = yPos;
+            collision=0;
+                for (i=0; i<g.spy.length; i++) {
+                    if (g.bomb.pos[0] == g.spy.pos[i][0] &&
+                            g.bomb.pos[1] == g.spy.pos[i][1]) {
+                        collision=1;
+                        break;
+                    }
+                }
+                if (!collision) break;
+                if (++ntries > 1000000) break;
+        }
+        return;
+    }
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    //
     if(g.danielsFeature == 0) {
         if (wallHit(g.spy.pos[0][0],g.spy.pos[0][1])) {
             g.spy.pos[0][0]=headpos[0];
@@ -1270,7 +1357,40 @@ void render(void)
     glVertex2i(cent[0]+5, cent[1]+5);
     glVertex2i(cent[0]+5, cent[1]-5);
     glEnd();
-    // 
+    //
+    // Draw Bomb and Explosion on board
+    getGridCenter(g.bomb.pos[1],g.bomb.pos[0],cent);
+    if (g.bomb.timer < 60*1) {
+        if (g.bomb.timer < 60 && g.bomb.timer % 10 < 5) { // blink every 10 frames (1/6 sec) for first second
+            glColor3f(0,0,0); // set bomb color to black
+        } else {
+            glColor3f(1,0,0); // set bomb color to red
+        }
+        glBegin(GL_QUADS);
+        glVertex2i(cent[0]-5, cent[1]-5);
+        glVertex2i(cent[0]-5, cent[1]+5);
+        glVertex2i(cent[0]+5, cent[1]+5);
+        glVertex2i(cent[0]+5, cent[1]-5);
+        glEnd();
+    } else if (g.bomb.timer >= 60*5 && g.bomb.timer < 60*6) { // bomb starts blinking faster in last second
+        if (g.bomb.timer % 10 < 5) { // blink every 10 frames (1/6 sec)
+            glColor3f(0,0,0); // set bomb color to black
+        } else {
+            glColor3f(1,1,0); // set bomb color to red
+        }
+        glBegin(GL_QUADS);
+        glVertex2i(cent[0]-5, cent[1]-5);
+        glVertex2i(cent[0]-5, cent[1]+5);
+        glVertex2i(cent[0]+5, cent[1]+5);
+        glVertex2i(cent[0]+5, cent[1]-5);
+        glEnd();
+    } else {
+        // Bomb has exploded, show explosion
+        explodeBomb();
+    }
+    // Update timer
+    g.bomb.timer++; // increment timer on every frame
+    //
     r.left   = g.xres/2;
     r.bot    = g.yres-100;
     r.center = 1;
@@ -1288,8 +1408,6 @@ void render(void)
     if (g.gameover == 1 || g.gameover == 2) {
         winOrLose(r, g.gameover);
         g.trueReset = 1;
-       
-
     }
     //
     r.left   = g.xres - 100;

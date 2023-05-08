@@ -5,6 +5,7 @@
 
 extern int score;
 
+extern void featureMode();
 extern void initSpy();
 extern void initGuard();
 extern void initKey();
