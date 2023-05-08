@@ -1,6 +1,11 @@
 #include <iostream>
 #include <cmath>
 #include <GL/glx.h>
+#include "cviramontes.h"
+#include "nflessati.h"
+
+//comment code was what was made in shadow.cpp
+
 /*
 //cone of vision param
 #define CONE_ANGLE 45.0f //in degrees
@@ -52,108 +57,85 @@ void incrementGuard(int& enemyCount) {
     enemyCount += ENEMY_INCREMENT;
 }
     
+void updateGuardPos(int& direction, int& x, int& y)
+{
+    switch (direction) {
+        case DIRECTION_DOWN:
+            y += 1;
+            break;
+        case DIRECTION_LEFT:
+            x -= 1;
+            break;
+        case DIRECTION_UP:
+            y -= 1;
+            break;
+        case DIRECTION_RIGHT:
+            x += 1;
+            break;
+        case NO_MOVEMENT:
+            break;
+    }
 
-/*
-//PHYSICS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    for (int z=0; z<MAX_GUARDS; z++) {
-        int guardpos[2];
-        guardpos[0]=g.guard[z].pos[0];
-        guardpos[1]=g.guard[z].pos[1];
-
-
-        if (guardHit(headpos,g.guard[z].pos[0],g.guard[z].pos[1])) {
-            resetGame();
-            return;
+    if(direction == DIRECTION_RIGHT) {
+        if (walls[y+1][x] != 1) {
+            direction = DIRECTION_DOWN;
         }
-        if(g.guard[z].direction == NO_MOVEMENT)
-            g.guard[z].direction = DIRECTION_RIGHT;
+        else if (walls[y][x+1] != 1) {
+            direction = DIRECTION_RIGHT;
+        }
+        else if (walls[y-1][x] != 1) {
+            direction = DIRECTION_UP;
+        }
+        else if (walls[y][x-1] !=1 ) {
+            direction = DIRECTION_LEFT;
+        }
+    }
+    else if (direction == DIRECTION_DOWN) {
+        if (walls[y][x+1] != 1) {
+            direction = DIRECTION_RIGHT;
+        }
+        else if (walls[y+1][x] != 1) {
+            direction = DIRECTION_DOWN;
+        }
+        else if (walls[y][x-1] != 1) {
+            direction = DIRECTION_LEFT;
+        }
+        else if (walls[y-1][x] != 1) {
+            direction = DIRECTION_UP;
+        }
 
-        if(g.guard[z].direction==DIRECTION_RIGHT) {
-            if (walls[g.guard[z].pos[1]+1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_DOWN;
-            }
-            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]+1]!=1) {
-                g.guard[z].direction = DIRECTION_RIGHT;
-            }
-            else if (walls[g.guard[z].pos[1]-1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_UP;
-            }
-            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]-1]!=1) {
-                g.guard[z].direction = DIRECTION_LEFT;
-            }
+    }
+    else if (direction == DIRECTION_LEFT) {
+        if (walls[y-1][x] != 1) {
+            direction = DIRECTION_UP;
         }
-        else if (g.guard[z].direction==DIRECTION_DOWN) {
-            if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]+1]!=1) {
-                g.guard[z].direction = DIRECTION_RIGHT;
-            }
-            else if (walls[g.guard[z].pos[1]+1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_DOWN;
-            }
-            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]-1]!=1) {
-                g.guard[z].direction = DIRECTION_LEFT;
-            }
-            else if (walls[g.guard[z].pos[1]-1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_UP;
-            }
+        else if (walls[y][x-1] != 1) {
+            direction = DIRECTION_LEFT;
+        }
+        else if (walls[y+1][x] !=1 ) {
+            direction = DIRECTION_DOWN;
+        }
+        else if (walls[y][x+1] !=1 ) {
+            direction = DIRECTION_RIGHT;
+        }
+    }
+    else if (direction == DIRECTION_UP) {
+        if (walls[y][x-1] != 1) {
+            direction = DIRECTION_LEFT;
+        }
+        else if (walls[y-1][x] != 1) {
+            direction = DIRECTION_UP;
+        }
+        else if (walls[y][x+1] != 1) {
+            direction = DIRECTION_RIGHT;
+        }
+        else if (walls[y+1][x] != 1) {
+            direction = DIRECTION_DOWN;
+        }
+    }
 
-        }
-        else if (g.guard[z].direction==DIRECTION_LEFT) {
-            if (walls[g.guard[z].pos[1]-1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_UP;
-            }
-            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]-1]!=1) {
-                g.guard[z].direction = DIRECTION_LEFT;
-            }
-            else if (walls[g.guard[z].pos[1]+1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_DOWN;
-            }
-            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]+1]!=1) {
-                g.guard[z].direction = DIRECTION_RIGHT;
-            }
-        }
-        else if (g.guard[z].direction==DIRECTION_UP) {
-            if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]-1]!=1) {
-                g.guard[z].direction = DIRECTION_LEFT;
-            }
-            else if (walls[g.guard[z].pos[1]-1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_UP;
-            }
-            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]+1]!=1) {
-                g.guard[z].direction = DIRECTION_RIGHT;
-            }
-            else if (walls[g.guard[z].pos[1]+1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_DOWN;
-            }
-        } 
-
-
-        switch (g.guard[z].direction) {
-            case DIRECTION_DOWN:
-                g.guard[z].pos[1] += 1;
-                break;
-            case DIRECTION_LEFT:
-                g.guard[z].pos[0] -= 1;
-                break;
-            case DIRECTION_UP:
-                g.guard[z].pos[1] -= 1;
-                break;
-            case DIRECTION_RIGHT:
-                g.guard[z].pos[0] += 1;
-                break;
-            case NO_MOVEMENT:
-                g.guard[z].pos[0]+=0;
-                g.guard[z].pos[1]+=0 ;
-                break;
-        }
-        if (g.guard[z].pos[0]< 0 ||
-                g.guard[z].pos[0] > g.gridDim-1 ||
-                g.guard[z].pos[1]< 0 ||
-                g.guard[z].pos[1] > g.gridDim-1) {
-            g.guard[z].pos[0]=guardpos[0]; g.guard[z].pos[1]=guardpos[1] ;
-            return;
-        }
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-*/
+    return;
+}
 
 /*
 //RENDER%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
