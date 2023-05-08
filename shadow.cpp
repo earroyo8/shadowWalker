@@ -171,13 +171,16 @@ struct Global {
     Grid grid[MAX_GRID][MAX_GRID];
     Spy spy;
     Guard guard[MAX_GUARDS];
-    int go = 0;
-    int life = 2; 
-    int trueReset = 0;
+    int go;
+    int debug;
+    int life = 3; 
+    int visableLife;
+    int trueReset;
     Key key;
     Teleport teleport[4];
     int nathansFeature1;
     int nathansFeature2;
+    int danielsFeature;
     int gridDim;
     int boardDim;
     int gameover;
@@ -195,6 +198,11 @@ struct Global {
         gridDim = 40;
         nathansFeature1=0;
         nathansFeature2=0;
+        danielsFeature = 0;
+        trueReset = 0;
+        visableLife = life;
+        go = 0;
+        debug = 0;
         gameover = 0;
         winner = 0;
         nbuttons = 0;
@@ -676,28 +684,45 @@ int checkKeys(XEvent *e)
             //resetGame();
             g.go = toggle(g.go);
             break;
+        case XK_d:
+            if(g.debug == 0)
+                g.debug = 1;
+            else {
+                g.debug = 0;
+                g.danielsFeature = 0;
+            }
+            break;
         case XK_k:
-            g.gameover = 2;
-            g.go = 0;
+            if (g.debug == 1) {
+                g.gameover = 2;
+                g.go = 0;
+            }
             break;
         case XK_l:
-            g.gameover = 1;
-            g.go = 0;
+            if (g.debug == 1) {
+                g.gameover = 1;
+                g.go = 0;
+            }
             break;
         case XK_r:
             resetGame(g.trueReset);
             g.gameover = 0;
-            g.life = 2;
+            g.life = 3;
             break;
         case XK_q:
-            score--;
+            if (g.debug == 1) {
+                if (score > 0)
+                    score--;
+            }
             break;
         case XK_t:
             telepress=1;
             break;
-
         case XK_e:
-            incrementScore();
+            if (g.debug == 1) {
+                if (score < 3)
+                    incrementScore();
+            }
             break;
         case XK_Escape:
             printf("\n");
@@ -715,7 +740,10 @@ int checkKeys(XEvent *e)
             else
                 g.nathansFeature2=0;
             break;
-
+        case XK_c:
+            if (g.debug == 1)
+                g.danielsFeature = toggle(g.danielsFeature);
+            break;
         case XK_equal:
             g.spy.delay *= 0.9;
             if (g.spy.delay < 0.001)
@@ -963,10 +991,11 @@ void physics(void)
         return;
     }
     //End of Spy&key Collision detection
-
-    if (wallHit(g.spy.pos[0][0],g.spy.pos[0][1])) {
-        g.spy.pos[0][0]=headpos[0];
-        g.spy.pos[0][1]=headpos[1];
+    if(g.danielsFeature == 0) {
+        if (wallHit(g.spy.pos[0][0],g.spy.pos[0][1])) {
+            g.spy.pos[0][0]=headpos[0];
+            g.spy.pos[0][1]=headpos[1];
+        }
     }
     for (int z=0; z<enemyCount; z++) {
         int guardpos[2];
@@ -1252,7 +1281,10 @@ void render(void)
     //
     r.left   = g.xres - 100;
     r.center = 0;
-    ggprint16(&r, 20, 0xFFFFFF, "Score: %d", score);
+     ggprint16(&r, 20, 0xFFFFFF, "Keys: %d", score);
+    ggprint16(&r, 20, 0xFFFFFF, "Lives: %d", g.life);
+    if (g.debug == 1)
+        debugText(r);
 
 
     if(g.nathansFeature2==1) {
@@ -1267,4 +1299,5 @@ void render(void)
 	r.center = 1;
 	ggprint16(&r,22,0xFFFFFF, "Invisible Walls On");
     }
+    
 }

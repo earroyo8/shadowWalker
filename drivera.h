@@ -2,6 +2,7 @@
 extern void Mrender();
 extern void MMenu();
 extern void tutorial(Rect r);
+extern void debugText(Rect r);
 extern void showMenu(Rect r);
 extern void gameOverText(Rect r,int n); 
 extern void loseScreen(int x, int y, int w, int h);
