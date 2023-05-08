@@ -988,6 +988,7 @@ void physics(void)
             if (!collision) break;
             if (++ntries > 1000000) break;
         }
+	initGuard();
         return;
     }
     //End of Spy&key Collision detection
