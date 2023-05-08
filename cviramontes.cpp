@@ -50,6 +50,11 @@ void initguardCone(float angle, float distance) {
     glEnd();
 }
 
+void incrementGuard(int& enemyCount) {
+    enemyCount += ENEMY_INCREMENT;
+}
+    
+
 /*
 //PHYSICS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     for (int z=0; z<MAX_GUARDS; z++) {
