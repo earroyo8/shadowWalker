@@ -964,7 +964,7 @@ void physics(void)
     if (headpos[0] == g.key.pos[0] && headpos[1] == g.key.pos[1]) {
         //Spawn new Key
         incrementScore();
-	enemyCount += ENEMY_INCREMENT;
+	incrementGuard(enemyCount);
         int collision=0;
         int ntries=0;
         while (1) {
