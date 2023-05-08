@@ -2,6 +2,6 @@
 #define _CVIRAMONTES_H_
 
 extern void initguardCone(float angle, float distance);
-extern void incrementGuard();
+extern void incrementGuard(int& enemyCount);
 
 #endif
