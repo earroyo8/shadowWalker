@@ -176,6 +176,7 @@ struct Global {
     int xres, yres;
     Grid grid[MAX_GRID][MAX_GRID];
     Spy spy;
+    int christiansFeature = 0;
     Guard guard[MAX_GUARDS];
     int go;
     int debug;
@@ -717,7 +718,9 @@ int checkKeys(XEvent *e)
         if(key == XK_Left ||key == XK_Right||key == XK_Up||key == XK_Down)
             if (g.nathansFeature2==0)
                 g.spy.direction = NO_MOVEMENT;
-
+	if (key == XK_s) {
+                g.christiansFeature = 0;
+	}
         return 0;
     }
     if (key == XK_Shift_L || key == XK_Shift_R) {
@@ -725,6 +728,15 @@ int checkKeys(XEvent *e)
 	g.spy.delay = 0.08;
         return 0;
     }
+    if (key == XK_s) {
+        g.christiansFeature = 1;
+        return 0;
+    }
+    if (key == XK_Control_L || key == XK_Control_R) {
+        if(g.debug == 1)
+            g.christiansFeature = toggle(g.christiansFeature);
+    }
+
     (void)shift;
     switch (key) {
         case XK_p:
@@ -1098,7 +1110,8 @@ void physics(void)
         guardpos[1] = g.guard[z].pos[1];
 
 
-        if (guardHit(headpos,g.guard[z].pos[0],g.guard[z].pos[1])) {
+        if (g.christiansFeature == 0 && 
+	    guardHit(headpos,g.guard[z].pos[0],g.guard[z].pos[1])) {
             resetGame(g.trueReset);
             g.life = checklives(g.life);
             if (g.life == 0) {
@@ -1113,7 +1126,7 @@ void physics(void)
 	    
         if (g.guard[z].pos[0]< 0 ||
                 g.guard[z].pos[0] > g.gridDim-1 ||
-                g.guard[z].pos[1]< 0 ||
+                g.guard[z].pos[1] < 0 ||
                 g.guard[z].pos[1] > g.gridDim-1) {
             g.guard[z].pos[0] = guardpos[0]; g.guard[z].pos[1] = guardpos[1] ;
             return;
@@ -1240,26 +1253,48 @@ void render(void)
 
     //
     //draw spy...
-    float c[3]={0.0f,1.0,0.1};
-    float rgb[3];
-    rgb[0] = -0.9 / (float)g.spy.length;
-    rgb[2] = -0.45 / (float)g.spy.length;
-    glColor3fv(c);
-    //
-    glBegin(GL_QUADS);
-    for (i=0; i<g.spy.length; i++) {
-        getGridCenter(g.spy.pos[i][1],g.spy.pos[i][0],cent);
-        glVertex2i(cent[0]-5, cent[1]-5);
-        glVertex2i(cent[0]-5, cent[1]+5);
-        glVertex2i(cent[0]+5, cent[1]+5);
-        glVertex2i(cent[0]+5, cent[1]-5);
-        c[0] +=	rgb[0];
-        c[2] +=	rgb[2];
+    if (g.christiansFeature == 0) {
+        float c[3]={0.0f,1.0,0.1};
+        float rgb[3];
+        rgb[0] = -0.9 / (float)g.spy.length;
+        rgb[2] = -0.45 / (float)g.spy.length;
         glColor3fv(c);
+        //
+        glBegin(GL_QUADS);
+        for (i=0; i<g.spy.length; i++) {
+            getGridCenter(g.spy.pos[i][1],g.spy.pos[i][0],cent);
+            glVertex2i(cent[0]-5, cent[1]-5);
+            glVertex2i(cent[0]-5, cent[1]+5);
+            glVertex2i(cent[0]+5, cent[1]+5);
+            glVertex2i(cent[0]+5, cent[1]-5);
+            c[0] +=     rgb[0];
+            c[2] +=     rgb[2];
+            glColor3fv(c);
+        }
+        glEnd();
     }
-    glEnd();
+    if (g.christiansFeature == 1) {
+        float c[3]={0.0f,0.5,0.5};
+        float rgb[3];
+        rgb[0] = -0.9 / (float)g.spy.length;
+        rgb[2] = -0.45 / (float)g.spy.length;
+        glColor3fv(c);
+        //
+        glBegin(GL_QUADS);
+        for (i=0; i<g.spy.length; i++) {
+            getGridCenter(g.spy.pos[i][1],g.spy.pos[i][0],cent);
+            glVertex2i(cent[0]-5, cent[1]-5);
+            glVertex2i(cent[0]-5, cent[1]+5);
+            glVertex2i(cent[0]+5, cent[1]+5);
+            glVertex2i(cent[0]+5, cent[1]-5);
+            c[0] +=     rgb[0];
+            c[2] +=     rgb[2];
+            glColor3fv(c);
+        }
+        glEnd();
+    }
     //draw guard...
-    for (int k=0; k<enemyCount; ++k) {
+    for (int k=0; k < enemyCount; ++k) {
         getGridCenter(g.guard[k].pos[1],g.guard[k].pos[0],cent);
         //initguardCone(CONE_ANGLE, CONE_DISTANCE);
         //glTranslatef(g.guard[k].pos[1],g.guard[k].pos[0],0.0f);
