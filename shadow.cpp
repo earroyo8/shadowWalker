@@ -534,16 +534,15 @@ void initSpy()
     //spy.timer = glfwGetTime() + 0.5;
 }
 
-#define grand() (rand() % 3 - 1)
 void initGuard()
 {
-    for (int k=0; k<enemyCount; ++k) {
-        int i=rand() % MAX_SIZE;
-        int j=rand() % MAX_SIZE;
+    for (int k = 0; k < enemyCount; ++k) {
+        int i = rand() % MAX_SIZE;
+        int j = rand() % MAX_SIZE;
 
-        while (walls[i][j]!=0) {
-            i=rand() % MAX_SIZE;
-            j=rand() % MAX_SIZE;
+        while (walls[i][j] != 0) {
+            i = rand() % MAX_SIZE;
+            j = rand() % MAX_SIZE;
         }
 
         g.guard[k].status = 1;
@@ -1093,10 +1092,10 @@ void physics(void)
             g.spy.pos[0][1]=headpos[1];
         }
     }
-    for (int z=0; z<enemyCount; z++) {
+    for (int z = 0; z < enemyCount; z++) {
         int guardpos[2];
-        guardpos[0]=g.guard[z].pos[0];
-        guardpos[1]=g.guard[z].pos[1];
+        guardpos[0] = g.guard[z].pos[0];
+        guardpos[1] = g.guard[z].pos[1];
 
 
         if (guardHit(headpos,g.guard[z].pos[0],g.guard[z].pos[1])) {
@@ -1107,91 +1106,16 @@ void physics(void)
             }
             return;
         }
+	    
+	updateGuardPos(g.guard[z].direction, g.guard[z].pos[0], g.guard[z].pos[1]);
         if(g.guard[z].direction == NO_MOVEMENT)
             g.guard[z].direction = DIRECTION_RIGHT;
-
-        if(g.guard[z].direction==DIRECTION_RIGHT) {
-            if (walls[g.guard[z].pos[1]+1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_DOWN;
-            }
-            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]+1]!=1) {
-                g.guard[z].direction = DIRECTION_RIGHT;
-            }
-            else if (walls[g.guard[z].pos[1]-1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_UP;
-            }
-            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]-1]!=1) {
-                g.guard[z].direction = DIRECTION_LEFT;
-            }
-        }
-        else if (g.guard[z].direction==DIRECTION_DOWN) {
-            if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]+1]!=1) {
-                g.guard[z].direction = DIRECTION_RIGHT;
-            }
-            else if (walls[g.guard[z].pos[1]+1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_DOWN;
-            }
-            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]-1]!=1) {
-                g.guard[z].direction = DIRECTION_LEFT;
-            }
-            else if (walls[g.guard[z].pos[1]-1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_UP;
-            }
-
-        }
-        else if (g.guard[z].direction==DIRECTION_LEFT) {
-            if (walls[g.guard[z].pos[1]-1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_UP;
-            }
-            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]-1]!=1) {
-                g.guard[z].direction = DIRECTION_LEFT;
-            }
-            else if (walls[g.guard[z].pos[1]+1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_DOWN;
-            }
-            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]+1]!=1) {
-                g.guard[z].direction = DIRECTION_RIGHT;
-            }
-        }
-        else if (g.guard[z].direction==DIRECTION_UP) {
-            if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]-1]!=1) {
-                g.guard[z].direction = DIRECTION_LEFT;
-            }
-            else if (walls[g.guard[z].pos[1]-1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_UP;
-            }
-            else if (walls[g.guard[z].pos[1]][g.guard[z].pos[0]+1]!=1) {
-                g.guard[z].direction = DIRECTION_RIGHT;
-            }
-            else if (walls[g.guard[z].pos[1]+1][g.guard[z].pos[0]]!=1) {
-                g.guard[z].direction = DIRECTION_DOWN;
-            }
-        } 
-
-
-        switch (g.guard[z].direction) {
-            case DIRECTION_DOWN:
-                g.guard[z].pos[1] += 1;
-                break;
-            case DIRECTION_LEFT:
-                g.guard[z].pos[0] -= 1;
-                break;
-            case DIRECTION_UP:
-                g.guard[z].pos[1] -= 1;
-                break;
-            case DIRECTION_RIGHT:
-                g.guard[z].pos[0] += 1;
-                break;
-            case NO_MOVEMENT:
-                g.guard[z].pos[0]+=0;
-                g.guard[z].pos[1]+=0 ;
-                break;
-        }
+	    
         if (g.guard[z].pos[0]< 0 ||
                 g.guard[z].pos[0] > g.gridDim-1 ||
                 g.guard[z].pos[1]< 0 ||
                 g.guard[z].pos[1] > g.gridDim-1) {
-            g.guard[z].pos[0]=guardpos[0]; g.guard[z].pos[1]=guardpos[1] ;
+            g.guard[z].pos[0] = guardpos[0]; g.guard[z].pos[1] = guardpos[1] ;
             return;
         }
 
@@ -1337,7 +1261,7 @@ void render(void)
     //draw guard...
     for (int k=0; k<enemyCount; ++k) {
         getGridCenter(g.guard[k].pos[1],g.guard[k].pos[0],cent);
-        initguardCone(CONE_ANGLE, CONE_DISTANCE);
+        //initguardCone(CONE_ANGLE, CONE_DISTANCE);
         //glTranslatef(g.guard[k].pos[1],g.guard[k].pos[0],0.0f);
         glColor3f(1.0, 0.1f, 0.0f);
         glBegin(GL_POLYGON);
