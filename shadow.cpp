@@ -720,10 +720,11 @@ int checkKeys(XEvent *e)
             break;
         case XK_e:
             if (g.debug == 1) {
-                if (score < 3)
+                if (score < 3) {
                     incrementScore();
                     incrementGuard(enemyCount);
                     initGuard();
+                }
             }
             break;
         case XK_Escape:
