@@ -63,7 +63,7 @@ void gameOverText(Rect r, int n)
     if (n == 2) {
         ggprint16(&r, 20, 0x00ffffff, "CONGRATULATIONS YOU HAVE WON!");
         ggprint12(&r, 20, 0x00ffffff, "You are pretty good at this espionage thing.");
-        ggprint12(&r, 20, 0x00ffffff, "If you want to play again press 'R' or 'ESC' to quit");
+        ggprint12(&r, 20, 0x00ffffff, "Press 'ESC' to quit and go touch some grass!");
     }
     //lose
     if (n == 1) {

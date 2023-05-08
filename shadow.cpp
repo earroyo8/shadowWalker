@@ -705,9 +705,14 @@ int checkKeys(XEvent *e)
             }
             break;
         case XK_r:
-            resetGame(g.trueReset);
-            g.gameover = 0;
-            g.life = 3;
+            if (g.gameover != 2) {
+                resetGame(g.trueReset);
+                g.gameover = 0;
+                g.life = 3;
+                g.nathansFeature1 = 0;
+                g.nathansFeature2 = 0;
+            
+            }
             break;
         case XK_q:
             if (g.debug == 1) {
@@ -1270,10 +1275,12 @@ void render(void)
     r.bot    = g.yres-100;
     r.center = 1;
     ggprint16(&r, 20, 0x00ffffff, "Shadow Walker");
-
-    //conditions to show various menus
-    if (score >= 3)
+//conditions to show various menus
+    if (score >= 3) {
         g.gameover = 2; 
+        g.nathansFeature1 = 0;
+        g.nathansFeature2 = 0;
+    }
     if (g.go == 0) {
         showMenu(r);
         g.trueReset = 0;
@@ -1281,12 +1288,15 @@ void render(void)
     if (g.gameover == 1 || g.gameover == 2) {
         winOrLose(r, g.gameover);
         g.trueReset = 1;
+       
+
     }
     //
     r.left   = g.xres - 100;
     r.center = 0;
-     ggprint16(&r, 20, 0xFFFFFF, "Keys: %d", score);
-    ggprint16(&r, 20, 0xFFFFFF, "Lives: %d", g.life);
+    ggprint16(&r, 20, 0xFFFFFF, "Keys: %d", score);
+    if (g.gameover != 2)
+        ggprint16(&r, 20, 0xFFFFFF, "Lives: %d", g.life);
     if (g.debug == 1)
         debugText(r);
 
