@@ -93,6 +93,7 @@ typedef struct t_guard {
 typedef struct key {
     int status;
     int pos[2];
+    int keyTimer = 0;
 } Key;
 //
 typedef struct bomb {
@@ -189,6 +190,7 @@ struct Global {
     int nathansFeature1;
     int nathansFeature2;
     int danielsFeature;
+    int estevansFeature;
     int gridDim;
     int boardDim;
     int gameover;
@@ -207,6 +209,7 @@ struct Global {
         nathansFeature1=0;
         nathansFeature2=0;
         danielsFeature = 0;
+        estevansFeature = 0;
         trueReset = 0;
         visableLife = life;
         go = 0;
@@ -777,12 +780,11 @@ int checkKeys(XEvent *e)
             }
             break;
             case XK_9: //press 9 for estevans feature modei
-            if (feature_mode_active == false) {
-                feature_mode_active = true;
-                featureMode();
+            if (g.estevansFeature == 0 ) {
+                g.estevansFeature = 1;
             }
             else {
-                feature_mode_active = false;
+                g.estevansFeature = 0;
             }
             break;
         case XK_q:
@@ -1318,13 +1320,31 @@ void render(void)
     //
     //Draw Key on board
     getGridCenter(g.key.pos[1],g.key.pos[0],cent);
-    glColor3f(1,1,0);
-    glBegin(GL_QUADS);
-    glVertex2i(cent[0]-5, cent[1]-5);
-    glVertex2i(cent[0]-5, cent[1]+5);
-    glVertex2i(cent[0]+5, cent[1]+5);
-    glVertex2i(cent[0]+5, cent[1]-5);
-    glEnd();
+    g.key.keyTimer++;
+    if (g.estevansFeature == 1) {
+        if (g.key.keyTimer < 60*1) {
+            if (g.key.keyTimer < 60 && g.key.keyTimer % 10 < 5) { // blink every 10 frames (1/6 sec) for first second
+                glColor3f(1,1,0); // set key color to yellow
+            } else {
+                glColor3f(0.8,0.498,0.196); // set key color to gold
+                glBegin(GL_QUADS);
+                glVertex2i(cent[0]-5, cent[1]-5);
+                glVertex2i(cent[0]-5, cent[1]+5);
+                glVertex2i(cent[0]+5, cent[1]+5);
+                glVertex2i(cent[0]+5, cent[1]-5);
+                glEnd();
+            }      
+        }}
+    if (g.estevansFeature == 0) {
+        getGridCenter(g.key.pos[1],g.key.pos[0],cent);
+        glColor3f(1,1,0);
+        glBegin(GL_QUADS);
+        glVertex2i(cent[0]-5, cent[1]-5);
+        glVertex2i(cent[0]-5, cent[1]+5);
+        glVertex2i(cent[0]+5, cent[1]+5);
+        glVertex2i(cent[0]+5, cent[1]-5);
+        glEnd();
+    }
     //
     // Draw Bomb and Explosion on board
     getGridCenter(g.bomb.pos[1],g.bomb.pos[0],cent);
