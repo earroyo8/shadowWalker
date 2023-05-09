@@ -1065,6 +1065,8 @@ void physics(void)
     //%%%%%%%%%%BombCollision%%%%%%%%%%%%%%%%%%%%%%
     if (headpos[0] == g.bomb.pos[0] && headpos[1] == g.bomb.pos[1]) {
         //Spawn new Bomb
+        resetGame(g.trueReset);
+        g.life = checklives(g.life);
         int collision=0;
         int ntries=0;
         while (1) {
@@ -1325,7 +1327,9 @@ void render(void)
     r.bot    = g.yres-100;
     r.center = 1;
     ggprint16(&r, 20, 0x00ffffff, "Shadow Walker");
-//conditions to show various menus
+    //conditions to show various menus
+    if (score == 0)
+        enemyCount = 5;   
     if (score >= 3) {
         g.gameover = 2; 
         g.nathansFeature1 = 0;

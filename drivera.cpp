@@ -134,7 +134,6 @@ void drawMBox(int x, int y, int w, int h, float r, float g, float b)
     }
     glEnd();
 }
-
 //first button has set color values
 void drawMMenu() 
 {
