@@ -55,8 +55,9 @@ void debugText(Rect r)
     ggprint12(&r, 20, 0x00ffffff, "'C' collision");
     ggprint12(&r, 20, 0x00ffffff, "'K' to win");
     ggprint12(&r, 20, 0x00ffffff, "'L' to lose");
-    ggprint12(&r, 20, 0x00ffffff, "'W' No walls");
-    ggprint12(&r, 20, 0x00ffffff, "'M' Always move");
+    ggprint12(&r, 20, 0x00ffffff, "'W' no walls");
+    ggprint12(&r, 20, 0x00ffffff, "'M' always move");
+    ggprint12(&r, 20, 0x00ffffff, "'S' sneak");
 }
 //win or lose text
 void gameOverText(Rect r, int n) 

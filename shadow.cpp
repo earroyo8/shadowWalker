@@ -751,7 +751,8 @@ int checkKeys(XEvent *e)
                 g.danielsFeature = 0;
                 g.nathansFeature1 = 0;
                 g.nathansFeature2 = 0;
-            }
+                g.christiansFeature = 0;
+            }   
             break;
         case XK_k:
             if (g.debug == 1) {
@@ -1388,6 +1389,13 @@ void render(void)
         debugText(r);
 
 
+    
+    if(g.christiansFeature==1) {
+    	r.left=g.xres/2;
+	r.bot = g.yres-20;
+	r.center =1;
+	ggprint16(&r,22,0xFFFFFF, "Sneaking Through Guards On");
+    }
     if(g.danielsFeature==1) {
     	r.left=g.xres/2;
 	r.bot = g.yres-40;
