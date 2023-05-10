@@ -190,7 +190,8 @@ struct Global {
     int nathansFeature1;
     int nathansFeature2;
     int danielsFeature;
-    int estevansFeature;
+    int estevansFeature1;
+    int estevansFeature2;
     int gridDim;
     int boardDim;
     int gameover;
@@ -209,7 +210,8 @@ struct Global {
         nathansFeature1=0;
         nathansFeature2=0;
         danielsFeature = 0;
-        estevansFeature = 0;
+        estevansFeature1 = 0;
+        estevansFeature2 = 0;
         trueReset = 0;
         visableLife = life;
         go = 0;
@@ -388,7 +390,7 @@ int main(int argc, char *argv[])
             //7. Reduce the countdown by our physics-rate
             physicsCountdown -= physicsRate;
         }
-        //Always render every frame.
+        ///Always render every frame.
         render();
         x11.swapBuffers();
     }
@@ -779,13 +781,24 @@ int checkKeys(XEvent *e)
             
             }
             break;
-            case XK_9: //press 9 for estevans feature modei
-            if (g.estevansFeature == 0 ) {
-                g.estevansFeature = 1;
+            //
+            case XK_9: //press 9 for estevans feature mode1
+            if (g.estevansFeature1 == 0 ) {
+                g.estevansFeature1 = 1;
             }
             else {
-                g.estevansFeature = 0;
+                g.estevansFeature1 = 0;
             }
+            break;
+            //
+            case XK_8: //press 8  for estevans feature mode2
+            if (g.estevansFeature2 == 0 ) {
+                g.estevansFeature2 = 1;
+            }
+            else {
+                g.estevansFeature2 = 0;
+            }
+            //
             break;
         case XK_q:
             if (g.debug == 1) {
@@ -1321,7 +1334,7 @@ void render(void)
     //Draw Key on board
     getGridCenter(g.key.pos[1],g.key.pos[0],cent);
     g.key.keyTimer++;
-    if (g.estevansFeature == 1) {
+    if (g.estevansFeature1 == 1) {
         if (g.key.keyTimer < 60*1) {
             if (g.key.keyTimer < 60 && g.key.keyTimer % 10 < 5) { // blink every 10 frames (1/6 sec) for first second
                 glColor3f(1,1,0); // set key color to yellow
@@ -1335,7 +1348,7 @@ void render(void)
                 glEnd();
             }      
         }}
-    if (g.estevansFeature == 0) {
+    if (g.estevansFeature1 == 0) {
         getGridCenter(g.key.pos[1],g.key.pos[0],cent);
         glColor3f(1,1,0);
         glBegin(GL_QUADS);
@@ -1346,38 +1359,12 @@ void render(void)
         glEnd();
     }
     //
-    // Draw Bomb and Explosion on board
-    getGridCenter(g.bomb.pos[1],g.bomb.pos[0],cent);
-    if (g.bomb.timer < 60*1) {
-        if (g.bomb.timer < 60 && g.bomb.timer % 10 < 5) { // blink every 10 frames (1/6 sec) for first second
-            glColor3f(0,0,0); // set bomb color to black
-        } else {
-            glColor3f(1,0,0); // set bomb color to red
-        }
-        glBegin(GL_QUADS);
-        glVertex2i(cent[0]-5, cent[1]-5);
-        glVertex2i(cent[0]-5, cent[1]+5);
-        glVertex2i(cent[0]+5, cent[1]+5);
-        glVertex2i(cent[0]+5, cent[1]-5);
-        glEnd();
-    } else if (g.bomb.timer >= 60*5 && g.bomb.timer < 60*6) { // bomb starts blinking faster in last second
-        if (g.bomb.timer % 10 < 5) { // blink every 10 frames (1/6 sec)
-            glColor3f(0,0,0); // set bomb color to black
-        } else {
-            glColor3f(1,1,0); // set bomb color to red
-        }
-        glBegin(GL_QUADS);
-        glVertex2i(cent[0]-5, cent[1]-5);
-        glVertex2i(cent[0]-5, cent[1]+5);
-        glVertex2i(cent[0]+5, cent[1]+5);
-        glVertex2i(cent[0]+5, cent[1]-5);
-        glEnd();
-    } else {
-        // Bomb has exploded, show explosion
-        explodeBomb();
+    //draw bomb and explosion
+    drawBomb(g.bomb.pos[0],g.bomb.pos[1],0);
+    //Estevans Nuke feature
+    if (g.estevansFeature2 == 1) {
+        drawBombs(10,1); 
     }
-    // Update timer
-    g.bomb.timer++; // increment timer on every frame
     //
     r.left   = g.xres/2;
     r.bot    = g.yres-100;

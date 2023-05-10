@@ -2,7 +2,6 @@
 //earroyo.cpp file
 //
 #include <GL/glx.h>
-#include <GL/glu.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -11,24 +10,8 @@
 #include "nflessati.h"
 using namespace std;
 
-//void getGridCenter(const int i, const int j, int cent[2]);
-
+void getGridCenter(const int i, const int j, int cent[2]);
 void initBomb();
-
-/*
-typedef struct key {
-    int status;
-    int pos[2];
-} Key;
-*/
-
-/*
-typedef struct bomb {
-    int status;
-    int pos[2];
-    int timer = 0;
-} Bomb;
-*/
 
 int score = 0;
 
@@ -39,25 +22,11 @@ struct Global {
     int gameover;
     int winner;
 } ge;
-
-/*
-void initKey() {
-    int xPos = rand() % MAX_SIZE;
-    int yPos = rand() % MAX_SIZE;
-    while (walls[xPos][yPos]!=0) {
-        xPos = rand() % MAX_SIZE;
-        yPos = rand() % MAX_SIZE;
-    }
-    ge.key.status = 1;
-    ge.key.pos[0] = xPos;
-    ge.key.pos[1] = yPos;
-}
-*/
-
 void resetGame(int n) {
     initSpy();
     initGuard();
     initKey();
+    initBomb();
     ge.gameover  = 0;
     ge.winner    = 0;
     if (n == 1)
@@ -67,21 +36,110 @@ void resetGame(int n) {
 void incrementScore() {
     score++;
 }
-
-/*
-void initBomb() {
-    int xPos = rand() % MAX_SIZE;
-    int yPos = rand() % MAX_SIZE;
-    while (walls[xPos][yPos]!=0) {
-        xPos = rand() % MAX_SIZE;
-        yPos = rand() % MAX_SIZE;
+//main bomb function
+void drawBomb(int xpos, int ypos, int timer) {
+    static int bombTimer = timer;
+    static bool exploded = false;
+    if (!exploded) {
+        int cent[2];
+        getGridCenter(xpos, ypos, cent);
+        if (bombTimer < 60) { //explodes in 40 frames
+            // Blink black and red
+            if (bombTimer % 10 < 5) {
+                glColor3f(0, 0, 0); // Black
+            } else {
+                glColor3f(1, 0, 0); // Red
+            }
+            glBegin(GL_QUADS);
+            glVertex2i(cent[0] - 5, cent[1] - 5);
+            glVertex2i(cent[0] - 5, cent[1] + 5);
+            glVertex2i(cent[0] + 5, cent[1] + 5);
+            glVertex2i(cent[0] + 5, cent[1] - 5);
+            glEnd();
+        } else {
+            // Explode as a 3x3 square
+            glColor3f(1, 0, 0); // Red
+            cout << "explosion!";
+            glBegin(GL_QUADS);
+            for (int i = ypos - 1; i <= ypos + 1; i++) {
+                for (int j = xpos - 1; j <= xpos + 1; j++) {
+                    if (i >= 0 && j >= 0 && i < MAX_SIZE && j < MAX_SIZE && walls[i][j] == 0) {
+                        int cent[2];
+                        getGridCenter(j, i, cent);
+                        glVertex2i(cent[0] - 5, cent[1] - 5);
+                        glVertex2i(cent[0] - 5, cent[1] + 5);
+                        glVertex2i(cent[0] + 5, cent[1] + 5);
+                        glVertex2i(cent[0] + 5, cent[1] - 5);
+                    }
+                }
+            }
+            glEnd();
+            exploded = true;
+        }
+        bombTimer++;
     }
-    ge.bomb.status = 1;
-    ge.bomb.pos[0] = xPos;
-    ge.bomb.pos[1] = yPos;
-    ge.bomb.timer = 0; // initialize timer to 0
 }
-*/
+
+//feature2. spawns 10 bombs
+void drawBombs(int numBombs, int timer) {
+    static int bombTimer = timer;
+    static bool exploded[10] = { false };
+    static int explosionTimer[10] = { 0 };
+    srand(time(NULL)); 
+    for (int i = 0; i < numBombs; i++) {
+        if (!exploded[i]) {
+            // generate a random xpos
+            int xpos = rand() % MAX_SIZE;
+            // generate a random y position
+            int ypos = rand() % MAX_SIZE;
+            int cent[2];
+            getGridCenter(xpos, ypos, cent);
+            
+            //explodes in 40 frames
+            if (bombTimer < 40) { 
+                // Blink black and red
+                if (bombTimer % 10 < 5) {
+                    glColor3f(0, 0, 0); // Black
+                } else {
+                    glColor3f(1, 0, 0); // Red
+                }
+                glBegin(GL_QUADS);
+                glVertex2i(cent[0] - 5, cent[1] - 5);
+                glVertex2i(cent[0] - 5, cent[1] + 5);
+                glVertex2i(cent[0] + 5, cent[1] + 5);
+                glVertex2i(cent[0] + 5, cent[1] - 5);
+                glEnd();
+            } else {
+                // try to Explode as a 3x3 square
+                if (explosionTimer[i] < 6) {
+                    glColor3f(1, 0, 0); // Red
+                } else {
+                    // Make the explosion disappear after 6 frames
+                    exploded[i] = true;
+                    continue;
+                }
+                glBegin(GL_QUADS);
+                for (int j = ypos - 1; j <= ypos + 1; j++) {
+                    for (int k = xpos - 1; k <= xpos + 1; k++) {
+                        if (j >= 0 && k >= 0 && j < MAX_SIZE &&
+                                k < MAX_SIZE && walls[j][k] == 0) {
+                            int cent[2];
+                            getGridCenter(k, j, cent);
+                            glVertex2i(cent[0] - 5, cent[1] - 5);
+                            glVertex2i(cent[0] - 5, cent[1] + 5);
+                            glVertex2i(cent[0] + 5, cent[1] + 5);
+                            glVertex2i(cent[0] + 5, cent[1] - 5);
+                        }
+                    }
+                }
+                glEnd();
+                explosionTimer[i]++;
+            }
+        }
+    }
+    bombTimer++;
+}
+
 
 /*
 // Draw Bomb and Explosion on board
