@@ -1,3 +1,7 @@
+//Shadow Walker main file
+//modified by Nathan Flessati, Christian Viramontes, 
+//Daniel Rivera, Estevan Arroyo
+//
 //
 //program: snake.cpp
 //author:  Gordon Griesel
